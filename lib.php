@@ -24,11 +24,11 @@
  *
  */
 
-function get_timetable_usergroup_name($setName, $setId, $semesterName) : string {
+function get_timetable_usergroup_name($set, $semesterName) : string {
 
-    return  'Timetable (' . $semesterName . ') - ' . $setName . ' ' . $setId;
+    return  'Timetable (' . $semesterName . ') - ' . $set;
 }
 
-function get_timetable_usergroup_id($setName, $setId, $semesterInstance) : string {
-    return  'TT.' . $semesterInstance . '.' . $setName . '.' . $setId;
+function get_timetable_usergroup_id($set, $semesterInstance) : string {
+    return  'TT.' . $semesterInstance . '.' . $set;
 }
