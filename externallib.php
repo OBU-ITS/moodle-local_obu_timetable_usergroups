@@ -32,7 +32,7 @@ class obu_timetable_usergroups_external extends external_api {
             array(
                 'course' => new external_value(PARAM_TEXT, 'Course ID number'),
                 'group' => new external_value(PARAM_TEXT, 'Group ID number'),
-                'user' => new external_value(PARAM_INT, 'User ID number'),
+                'user' => new external_value(PARAM_TEXT, 'User ID number'),
             )
         );
     }
@@ -46,6 +46,32 @@ class obu_timetable_usergroups_external extends external_api {
     }
 
     public static function add_usergroup_user($course, $group, $user) {
+        global $DB;
+
+        // Context validation
+        self::validate_context(context_system::instance());
+
+        // Parameter validation
+        $params = self::validate_parameters(
+            self::add_session_parameters(), array(
+                'course' => $course,
+                'group' => $group,
+                'user' => $user,
+            )
+        );
+
+        //check if userid is not equal to 8 characters in length or contains a letter from the alphabet and return error code if so
+        if (strlen($params['user']) != 8 || re.search('[a-zA-Z]', $params['user'])) {
+            return array('result' => -1);
+        }
+
+        if (!($courseRecord = $DB->get_record('course', array('course' => $params['course'])))) {
+            return array('result' => -2);
+        }
+
+        if (!($userRecord = $DB->get_record('user', array('user' => $params['user'])))) {
+            return array('result' => -3);
+        }
         //TODO: Add user to given user group here
     }
 
@@ -54,7 +80,7 @@ class obu_timetable_usergroups_external extends external_api {
             array(
                 'course' => new external_value(PARAM_TEXT, 'Course ID number'),
                 'group' => new external_value(PARAM_TEXT, 'Group ID number'),
-                'user' => new external_value(PARAM_INT, 'User ID number'),
+                'user' => new external_value(PARAM_TEXT, 'User ID number'),
             )
         );
     }
@@ -68,6 +94,20 @@ class obu_timetable_usergroups_external extends external_api {
     }
 
     public static function remove_usergroup_user($course, $group, $user) {
+
+        //check if userid is not equal to 8 characters in length or contains a letter from the alphabet and return error code if so
+        if (strlen($params['user']) != 8 || re.search('[a-zA-Z]', $params['user'])) {
+            return array('result' => -1);
+        }
+
+        if (!($courseRecord = $DB->get_record('course', array('course' => $params['course'])))) {
+            return array('result' => -2);
+        }
+
+        if (!($userRecord = $DB->get_record('user', array('user' => $params['user'])))) {
+            return array('result' => -3);
+        }
+
         //TODO: Remove user from given user group here
     }
 
@@ -76,7 +116,7 @@ class obu_timetable_usergroups_external extends external_api {
             array(
                 'course' => new external_value(PARAM_TEXT, 'Course ID number'),
                 'group' => new external_value(PARAM_TEXT, 'Group ID number'),
-                'user' => new external_value(PARAM_INT, 'User ID number'),
+                'user' => new external_value(PARAM_TEXT, 'User ID number'),
             )
         );
     }
@@ -90,6 +130,20 @@ class obu_timetable_usergroups_external extends external_api {
     }
 
     public static function create_usergroup($course, $group, $user) {
+
+        //check if userid is not equal to 8 characters in length or contains a letter from the alphabet and return error code if so
+        if (strlen($params['user']) != 8 || re.search('[a-zA-Z]', $params['user'])) {
+            return array('result' => -1);
+        }
+
+        if (!($courseRecord = $DB->get_record('course', array('course' => $params['course'])))) {
+            return array('result' => -2);
+        }
+
+        if (!($userRecord = $DB->get_record('user', array('user' => $params['user'])))) {
+            return array('result' => -3);
+        }
+
         //TODO: Create user group from given information here
     }
 
