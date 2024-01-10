@@ -46,6 +46,14 @@ $functions = array(
         'description' => 'Creates a user group within Moodle with the given details. Returns a result code.',
         'type'        => 'write',
         'capabilities'=> ''
+    ),
+    'obu_timetable_usergroups_get_settings' => array(
+    'classname'   => 'obu_timetable_usergroups_external',
+    'methodname'  => 'get_settings',
+    'classpath'   => 'local/obu_timetable_usergroups/externallib.php',
+    'description' => 'Gets the settings and gives them to the API caller.',
+    'type'        => 'read',
+    'capabilities'=> ''
     )
 );
 
@@ -56,7 +64,8 @@ $services = array(
         'functions' => array(
             'obu_timetable_usergroups_add_usergroup_user',
             'obu_timetable_usergroups_remove_usergroup_user',
-            'obu_timetable_usergroups_create_usergroup'
+            'obu_timetable_usergroups_create_usergroup',
+            'obu_timetable_usergroups_get_settings'
         ),
         'restrictedusers' => 1,
         'enabled' => 1
