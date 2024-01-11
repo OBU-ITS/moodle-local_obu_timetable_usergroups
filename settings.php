@@ -18,7 +18,7 @@
 /**
  * Standard lib
  *
- * @package    local_obu_timetable_usergroups
+ * @package    obu_timetable_usergroups
  * @author     Emir Kamel
  * @copyright  2024, Oxford Brookes University {@link http://www.brookes.ac.uk/}
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
