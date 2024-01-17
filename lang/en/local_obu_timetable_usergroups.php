@@ -16,18 +16,14 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Version info
- *
+ * OBU Application - Language strings
  * @package    local_obu_timetable_usergroups
+ * @category   local
  * @author     Joe Souch
  * @copyright  2024, Oxford Brookes University {@link http://www.brookes.ac.uk/}
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ *
  */
 
-defined('MOODLE_INTERNAL') || die();
-
-$plugin->component = 'local_obu_timetable_usergroups';
-$plugin->version = 2024011600;
-$plugin->requires = 2015111604;
-$plugin->maturity = MATURITY_ALPHA;
-$plugin->release = 'v1.0.1';
+$string['pluginname'] = 'obu_timetable_usergroups';
+$string['plugintitle'] = 'Timetable user groups';

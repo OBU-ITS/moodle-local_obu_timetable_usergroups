@@ -1,7 +1,5 @@
 <?php
 
-// This file is part of Moodle - http://moodle.org/
-//
 // Moodle is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
@@ -16,18 +14,21 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Version info
+ * Attendance web service - external library
  *
  * @package    local_obu_timetable_usergroups
  * @author     Joe Souch
- * @copyright  2024, Oxford Brookes University {@link http://www.brookes.ac.uk/}
+ * @category   local
+ * @copyright  2017, Oxford Brookes University
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ *
  */
 
-defined('MOODLE_INTERNAL') || die();
+function get_timetable_usergroup_name($set, $semesterName) : string {
 
-$plugin->component = 'local_obu_timetable_usergroups';
-$plugin->version = 2024011600;
-$plugin->requires = 2015111604;
-$plugin->maturity = MATURITY_ALPHA;
-$plugin->release = 'v1.0.1';
+    return  'Timetable (' . $semesterName . ') - ' . $set;
+}
+
+function get_timetable_usergroup_id($set, $semesterInstance) : string {
+    return  'TT.' . $semesterInstance . '.' . $set;
+}
