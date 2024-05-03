@@ -45,7 +45,7 @@ class local_obu_timetable_usergroups_external extends external_api {
         );
     }
 
-    public static function add_usergroup_user($course, $group, $user) {
+    public static function add_usergroup_user($courseIdNumber, $groupName, $instanceName, $username) {
         global $DB;
 
         // Context validation
@@ -54,22 +54,22 @@ class local_obu_timetable_usergroups_external extends external_api {
         // Parameter validation
         $params = self::validate_parameters(
             self::add_session_parameters(), array(
-                'course' => $course,
-                'group' => $group,
-                'user' => $user,
+                'courseIdNumber' => $courseIdNumber,
+                'groupName' => $groupName,
+                'instanceName' => $instanceName,
+                'username' => $username,
             )
         );
 
-        //check if userid is not equal to 8 characters in length or contains a letter from the alphabet and return error code if so
-        if (strlen($params['user']) != 8 || re.search('[a-zA-Z]', $params['user'])) {
+        if (strlen($params['user']) == 0) {
             return array('result' => -1);
         }
 
-        if (!($courseRecord = $DB->get_record('course', array('course' => $params['course'])))) {
+        if (!($courseRecord = $DB->get_record('course', array('idnumber' => $params['courseIdNumber'])))) {
             return array('result' => -2);
         }
 
-        if (!($userRecord = $DB->get_record('user', array('user' => $params['user'])))) {
+        if (!($userRecord = $DB->get_record('user', array('username' => $params['username'])))) {
             return array('result' => -3);
         }
         //TODO: Add user to given user group here
