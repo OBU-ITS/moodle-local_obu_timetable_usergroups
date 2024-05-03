@@ -24,15 +24,18 @@
  */
 
 require_once($CFG->libdir . "/externallib.php");
+require_once($CFG->dirroot . "/local/obu_timetable_usergroups/lib.php");
+require_once($CFG->dirroot . '/group/lib.php');
 
 class local_obu_timetable_usergroups_external extends external_api {
 
     public static function add_usergroup_user_parameters() {
         return new external_function_parameters(
             array(
-                'course' => new external_value(PARAM_TEXT, 'Course ID number'),
-                'group' => new external_value(PARAM_TEXT, 'Group ID number'),
-                'user' => new external_value(PARAM_TEXT, 'User ID number'),
+                'courseIdNumber' => new external_value(PARAM_TEXT, 'Course ID number'),
+                'groupName' => new external_value(PARAM_TEXT, 'Group ID number'),
+                'instanceName' => new external_value(PARAM_TEXT, 'Semester instance name'),
+                'username' => new external_value(PARAM_TEXT, 'Username'), // TODO: Or email?
             )
         );
     }
@@ -45,42 +48,53 @@ class local_obu_timetable_usergroups_external extends external_api {
         );
     }
 
-    public static function add_usergroup_user($course, $group, $user) {
+    public static function add_usergroup_user($courseIdNumber, $groupName, $instanceName, $username) {
         global $DB;
 
         // Context validation
         self::validate_context(context_system::instance());
 
         // Parameter validation
-        $params = self::validate_parameters(
+        self::validate_parameters(
             self::add_session_parameters(), array(
-                'course' => $course,
-                'group' => $group,
-                'user' => $user,
+                'courseIdNumber' => $courseIdNumber,
+                'groupName' => $groupName,
+                'instanceName' => $instanceName,
+                'username' => $username,
             )
         );
 
-        //check if userid is not equal to 8 characters in length or contains a letter from the alphabet and return error code if so
-        if (strlen($params['user']) != 8 || re.search('[a-zA-Z]', $params['user'])) {
+        if (strlen($username) == 0) {
             return array('result' => -1);
         }
 
-        if (!($courseRecord = $DB->get_record('course', array('course' => $params['course'])))) {
+        if (!($courseRecord = $DB->get_record('course', array('idnumber' => $courseIdNumber)))) {
             return array('result' => -2);
         }
 
-        if (!($userRecord = $DB->get_record('user', array('user' => $params['user'])))) {
+        if (!($userRecord = $DB->get_record('user', array('username' => $username)))) {
             return array('result' => -3);
         }
-        //TODO: Add user to given user group here
+
+        $context = context_course::instance($courseRecord->id);
+        if(!is_enrolled($context, $userRecord->id, '', true)) {
+            return array('result' => -4);
+        }
+
+        $group = local_obu_timetable_usergroups_get_group($courseRecord->id, $courseRecord->idnumber, $courseRecord->shortname, $instanceName, $groupName);
+        if(groups_add_member($group->id, $userRecord->id, 'local_obu_timetable_usergroups'))
+        {
+            return array('result' => 1);
+        }
+
+        return array('result' => -9);
     }
 
     public static function remove_usergroup_user_parameters() {
         return new external_function_parameters(
             array(
-                'course' => new external_value(PARAM_TEXT, 'Course ID number'),
-                'group' => new external_value(PARAM_TEXT, 'Group ID number'),
-                'user' => new external_value(PARAM_TEXT, 'User ID number'),
+                'groupId' => new external_value(PARAM_TEXT, 'Group ID'),
+                'userId' => new external_value(PARAM_TEXT, 'User ID'),
             )
         );
     }
@@ -93,58 +107,29 @@ class local_obu_timetable_usergroups_external extends external_api {
         );
     }
 
-    public static function remove_usergroup_user($course, $group, $user) {
+    public static function remove_usergroup_user($groupid, $userid) {
+        self::validate_context(context_system::instance());
 
-        //check if userid is not equal to 8 characters in length or contains a letter from the alphabet and return error code if so
-        if (strlen($params['user']) != 8 || re.search('[a-zA-Z]', $params['user'])) {
+        self::validate_parameters(
+            self::add_session_parameters(), array(
+                'groupId' => $groupid,
+                'userId' => $userid,
+            )
+        );
+
+        if ($groupid == 0) {
             return array('result' => -1);
         }
 
-        if (!($courseRecord = $DB->get_record('course', array('course' => $params['course'])))) {
+        if ($userid == 0) {
             return array('result' => -2);
         }
 
-        if (!($userRecord = $DB->get_record('user', array('user' => $params['user'])))) {
-            return array('result' => -3);
+        if(groups_remove_member($groupid, $userid)) {
+            return array('result' => 1);
         }
 
-        //TODO: Remove user from given user group here
-    }
-
-    public static function create_usergroup_parameters() {
-        return new external_function_parameters(
-            array(
-                'course' => new external_value(PARAM_TEXT, 'Course ID number'),
-                'group' => new external_value(PARAM_TEXT, 'Group ID number'),
-                'user' => new external_value(PARAM_TEXT, 'User ID number'),
-            )
-        );
-    }
-
-    public static function create_usergroup_returns() {
-        return new external_single_structure(
-            array(
-                'result' => new external_value(PARAM_INT, 'Result')
-            )
-        );
-    }
-
-    public static function create_usergroup($course, $group, $user) {
-
-        //check if userid is not equal to 8 characters in length or contains a letter from the alphabet and return error code if so
-        if (strlen($params['user']) != 8 || re.search('[a-zA-Z]', $params['user'])) {
-            return array('result' => -1);
-        }
-
-        if (!($courseRecord = $DB->get_record('course', array('course' => $params['course'])))) {
-            return array('result' => -2);
-        }
-
-        if (!($userRecord = $DB->get_record('user', array('user' => $params['user'])))) {
-            return array('result' => -3);
-        }
-
-        //TODO: Create user group from given information here
+        return array('result' => -9);
     }
 
     public static function get_settings_parameters() {
