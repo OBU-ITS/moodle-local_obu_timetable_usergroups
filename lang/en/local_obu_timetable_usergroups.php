@@ -25,5 +25,13 @@
  *
  */
 
+$string['privacy:metadata'] = 'The Timetable user groups Service plugin does not store any personal data.';
+
 $string['pluginname'] = 'obu_timetable_usergroups';
-$string['plugintitle'] = 'Timetable user groups';
+$string['plugintitle'] = 'OBU Timetable user groups';
+$string['header'] = 'You are using OBU Timetable user groups Plugin version {$a->version}.';
+$string['livesettings'] = 'Live Import Settings';
+$string['enable'] = 'Is enabled?';
+$string['enabledescription'] = 'Toggle to enable the plugin or disable the plugin in Moodle.';
+$string['modulelist'] = 'Module List:';
+$string['modulelistsettingtext'] = 'Section to provide list of modules to include in OBU Timetable user groups plugin.';

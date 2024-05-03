@@ -23,7 +23,7 @@
 
 // Define the web service functions to install.
 $functions = array(
-    'obu_timetable_usergroups_add_usergroup_user' => array(
+    'local_obu_timetable_usergroups_add_usergroup_user' => array(
         'classname'   => 'obu_timetable_usergroups_external',
         'methodname'  => 'add_usergroup_user',
         'classpath'   => 'local/obu_timetable_usergroups/externallib.php',
@@ -31,7 +31,7 @@ $functions = array(
         'type'        => 'write',
         'capabilities'=> ''
     ),
-    'obu_timetable_usergroups_remove_usergroup_user' => array(
+    'local_obu_timetable_usergroups_remove_usergroup_user' => array(
         'classname'   => 'obu_timetable_usergroups_external',
         'methodname'  => 'remove_usergroup_user',
         'classpath'   => 'local/obu_timetable_usergroups/externallib.php',
@@ -39,7 +39,7 @@ $functions = array(
         'type'        => 'write',
         'capabilities'=> ''
     ),
-    'obu_timetable_usergroups_create_usergroup' => array(
+    'local_obu_timetable_usergroups_create_usergroup' => array(
         'classname'   => 'obu_timetable_usergroups_external',
         'methodname'  => 'create_usergroup',
         'classpath'   => 'local/obu_timetable_usergroups/externallib.php',
@@ -47,13 +47,13 @@ $functions = array(
         'type'        => 'write',
         'capabilities'=> ''
     ),
-    'obu_timetable_usergroups_get_settings' => array(
-    'classname'   => 'obu_timetable_usergroups_external',
-    'methodname'  => 'get_settings',
-    'classpath'   => 'local/obu_timetable_usergroups/externallib.php',
-    'description' => 'Gets the settings and gives them to the API caller.',
-    'type'        => 'read',
-    'capabilities'=> ''
+    'local_obu_timetable_usergroups_get_settings' => array(
+        'classname'   => 'obu_timetable_usergroups_external',
+        'methodname'  => 'get_settings',
+        'classpath'   => 'local/obu_timetable_usergroups/externallib.php',
+        'description' => 'Gets the settings and gives them to the API caller.',
+        'type'        => 'read',
+        'capabilities'=> ''
     )
 );
 
@@ -62,10 +62,10 @@ $services = array(
     'OBU Timetable user groups' => array(
         'shortname' => 'obu_timetable_usergroups',
         'functions' => array(
-            'obu_timetable_usergroups_add_usergroup_user',
-            'obu_timetable_usergroups_remove_usergroup_user',
-            'obu_timetable_usergroups_create_usergroup',
-            'obu_timetable_usergroups_get_settings'
+            'local_obu_timetable_usergroups_add_usergroup_user',
+            'local_obu_timetable_usergroups_remove_usergroup_user',
+            'local_obu_timetable_usergroups_create_usergroup',
+            'local_obu_timetable_usergroups_get_settings'
         ),
         'restrictedusers' => 1,
         'enabled' => 1

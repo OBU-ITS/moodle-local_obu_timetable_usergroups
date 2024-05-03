@@ -25,7 +25,7 @@
 
 require_once($CFG->libdir . "/externallib.php");
 
-class obu_timetable_usergroups_external extends external_api {
+class local_obu_timetable_usergroups_external extends external_api {
 
     public static function add_usergroup_user_parameters() {
         return new external_function_parameters(
@@ -147,4 +147,27 @@ class obu_timetable_usergroups_external extends external_api {
         //TODO: Create user group from given information here
     }
 
+    public static function get_settings_parameters() {
+        return new external_function_parameters(
+            array(
+            )
+        );
+    }
+
+    public static function get_settings_returns() {
+        return new external_single_structure(
+            array(
+                'enabled' => new external_value(PARAM_BOOL, 'Enabled'),
+                'modulelist' => new external_multiple_structure(new external_value(PARAM_TEXT, 'Module List'))
+            )
+        );
+    }
+
+    public static function get_settings(){
+        $enabled = get_config('local_attendance_ws', 'enable');
+        $modulelist = get_config('local_attendance_ws', 'module_list');
+        $modulesarray = array_filter(explode(",", str_replace(" ", "", $modulelist)));
+
+        return array('enabled' => $enabled, 'modulelist' => $modulesarray);
+    }
 }

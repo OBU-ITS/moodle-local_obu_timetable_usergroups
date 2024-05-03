@@ -24,11 +24,83 @@
  *
  */
 
-function get_timetable_usergroup_name($set, $semesterName) : string {
+require_once($CFG->dirroot . "/group/lib.php");
 
-    return  'Timetable (' . $semesterName . ') - ' . $set;
+const GROUPING_IDENTIFIER = 'Timetabling';
+
+function get_timetable_usergroup_name($set, $courseShortName, $semesterName) : string {
+    return  "$courseShortName - $semesterName - $set";
 }
 
-function get_timetable_usergroup_id($set, $semesterInstance) : string {
-    return  'TT.' . $semesterInstance . '.' . $set;
+function get_timetable_usergroup_id($set, $courseIdNumber, $semesterName) : string {
+    return  "TT.$courseIdNumber.$semesterName.$set";
+}
+
+function get_timetable_usergroup_description() : string {
+    return  "To be done"; // TODO
+}
+
+function add_usergroup_user($courseId, $set, $semesterInstance, $semesterName, $username) {
+    global $DB;
+
+    if(!($user = $DB->get_record('user', array('username' => $username, 'auth' => 'LDAP'), 'id'))) {
+        return;
+    }
+
+    $group = get_usergroup($courseId, $set, $semesterInstance, $semesterName);
+
+    groups_add_member($group, $user);
+}
+
+function remove_usergroup_user($courseId, $set, $semesterInstance, $semesterName, $username) {
+    global $DB;
+
+    if(!($user = $DB->get_record('user', array('username' => $username, 'auth' => 'LDAP'), 'id'))) {
+        return;
+    }
+
+    $group = get_usergroup($courseId, $set, $semesterInstance, $semesterName);
+
+    groups_remove_member($group, $user);
+}
+
+function get_usergroup($courseId, $courseIdNumber, $courseShortName, $set, $semesterName) : object {
+    global $DB;
+
+    $groupIdNumber = get_timetable_usergroup_id($set, $courseIdNumber, $semesterName);
+
+    if (!($group = $DB->get_record('groups', array('courseid'=>$courseId, 'idnumber'=>$groupIdNumber)))) {
+        $group = new stdClass();
+        $group->name = get_timetable_usergroup_name($set, $courseShortName, $semesterName);
+        $group->description = get_timetable_usergroup_description();
+        $group->idnumber = $groupIdNumber;
+        $group->description_editor = FORMAT_HTML;
+        $group->enrolmentkey = '';
+        $group->enablemessaging = '0';
+        $group->courseid = $courseId;
+
+        $group->id = groups_create_group($group);
+
+        $grouping = get_grouping($courseId);
+
+        groups_assign_grouping($grouping->id, $group->id);
+    }
+
+    return $group;
+}
+
+function get_grouping($courseId) : object {
+    global $DB;
+
+    if (!($grouping = $DB->get_record('groupings_groups', array('courseid'=>$courseId, 'idnumber'=>GROUPING_IDENTIFIER)))) {
+
+        $grouping = new stdClass();
+        $grouping->name = GROUPING_IDENTIFIER;
+        $grouping->courseid = $courseId;
+        $grouping->idnumber = GROUPING_IDENTIFIER;
+
+        $grouping->id = groups_create_grouping($grouping);
+    }
+
+    return $grouping;
 }

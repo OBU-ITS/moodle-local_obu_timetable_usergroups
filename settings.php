@@ -27,9 +27,8 @@
 defined('MOODLE_INTERNAL') || die;
 
 if ($hassiteconfig) {
-    $ADMIN->add("parent_section", new admin_externalpage('obutimetableusergroups', "OBU Timetable user groups Admin Component", "$CFG->wwwroot/$CFG->admin/obutimetableusergroups.php"));
-    $settings = new admin_settingpage(get_string('pluginname', 'obu_timetable_usergroups'), get_string('plugintitle', 'obu_timetable_usergroups'));
+    $settings = new admin_settingpage(get_string('pluginname', 'local_obu_timetable_usergroups'), get_string('plugintitle', 'local_obu_timetable_usergroups'));
     $ADMIN->add('localplugins', $settings);
-    $settings->add(new admin_setting_configcheckbox('obu_timetable_usergroups/enable', get_string('enable', 'obu_timetable_usergroups'), get_string('enabledescription', 'obu_timetable_usergroups'), ''));
-    $settings->add(new admin_setting_configtextarea('obu_timetable_usergroups/module_list', get_string('modulelist', 'obu_timetable_usergroups'), get_string('modulelistsettingtext', 'obu_timetable_usergroups'), ''));
+    $settings->add(new admin_setting_configcheckbox('local_obu_timetable_usergroups/enable', get_string('enable', 'local_obu_timetable_usergroups'), get_string('enabledescription', 'local_obu_timetable_usergroups'), ''));
+    $settings->add(new admin_setting_configtextarea('local_obu_timetable_usergroups/module_list', get_string('modulelist', 'local_obu_timetable_usergroups'), get_string('modulelistsettingtext', 'local_obu_timetable_usergroups'), ''));
 }
