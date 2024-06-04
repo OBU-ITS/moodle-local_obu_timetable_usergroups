@@ -27,10 +27,10 @@
 defined('MOODLE_INTERNAL') || die();
 
 $plugin->component = 'local_obu_timetable_usergroups';
-$plugin->version = 2024011700;
+$plugin->version = 2024060401;
 $plugin->requires = 2015111604;
 $plugin->maturity = MATURITY_ALPHA;
 $plugin->release = 'v1.0.1';
 $plugin->dependencies = array(
-    'local_obu_metalinking' => 2024012300
+    'local_obu_group_manager' => 2024060401
 );

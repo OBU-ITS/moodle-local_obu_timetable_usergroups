@@ -24,7 +24,7 @@
  */
 
 require_once($CFG->libdir . "/externallib.php");
-require_once($CFG->dirroot . "/local/obu_timetable_usergroups/lib.php");
+require_once($CFG->dirroot . "/local/obu_group_manager/lib.php");
 require_once($CFG->dirroot . '/group/lib.php');
 
 class local_obu_timetable_usergroups_external extends external_api {
@@ -51,10 +51,7 @@ class local_obu_timetable_usergroups_external extends external_api {
     public static function add_usergroup_user($courseIdNumber, $groupName, $instanceName, $username) {
         global $DB;
 
-        // Context validation
         self::validate_context(context_system::instance());
-
-        // Parameter validation
         self::validate_parameters(
             self::add_session_parameters(), array(
                 'courseIdNumber' => $courseIdNumber,
@@ -68,11 +65,11 @@ class local_obu_timetable_usergroups_external extends external_api {
             return array('result' => -1);
         }
 
-        if (!($courseRecord = $DB->get_record('course', array('idnumber' => $courseIdNumber)))) {
+        if (!($userRecord = $DB->get_record('user', array('username' => $username)))) {
             return array('result' => -2);
         }
 
-        if (!($userRecord = $DB->get_record('user', array('username' => $username)))) {
+        if (!($courseRecord = $DB->get_record('course', array('idnumber' => $courseIdNumber)))) {
             return array('result' => -3);
         }
 
@@ -81,10 +78,10 @@ class local_obu_timetable_usergroups_external extends external_api {
             return array('result' => -4);
         }
 
-        $group = local_obu_timetable_usergroups_get_group($courseRecord->id, $courseRecord->idnumber, $courseRecord->shortname, $instanceName, $groupName);
-        if(groups_add_member($group->id, $userRecord->id, 'local_obu_timetable_usergroups'))
+        $group = local_obu_group_manager_create_system_group($courseRecord, null, null, $instanceName, $groupName);
+        if(groups_add_member($group, $userRecord))
         {
-            return array('result' => 1);
+            return array('result' => $group->id);
         }
 
         return array('result' => -9);
@@ -94,7 +91,7 @@ class local_obu_timetable_usergroups_external extends external_api {
         return new external_function_parameters(
             array(
                 'groupId' => new external_value(PARAM_TEXT, 'Group ID'),
-                'userId' => new external_value(PARAM_TEXT, 'User ID'),
+                'username' => new external_value(PARAM_TEXT, 'Username'),
             )
         );
     }
@@ -107,13 +104,14 @@ class local_obu_timetable_usergroups_external extends external_api {
         );
     }
 
-    public static function remove_usergroup_user($groupid, $userid) {
-        self::validate_context(context_system::instance());
+    public static function remove_usergroup_user($groupid, $username) {
+        global $DB;
 
+        self::validate_context(context_system::instance());
         self::validate_parameters(
             self::add_session_parameters(), array(
                 'groupId' => $groupid,
-                'userId' => $userid,
+                'username' => $username,
             )
         );
 
@@ -121,11 +119,15 @@ class local_obu_timetable_usergroups_external extends external_api {
             return array('result' => -1);
         }
 
-        if ($userid == 0) {
+        if (strlen($username) == 0) {
             return array('result' => -2);
         }
 
-        if(groups_remove_member($groupid, $userid)) {
+        if (!($userRecord = $DB->get_record('user', array('username' => $username)))) {
+            return array('result' => -3);
+        }
+
+        if(groups_remove_member($groupid, $userRecord->id)) {
             return array('result' => 1);
         }
 
@@ -149,8 +151,8 @@ class local_obu_timetable_usergroups_external extends external_api {
     }
 
     public static function get_settings(){
-        $enabled = get_config('local_attendance_ws', 'enable');
-        $modulelist = get_config('local_attendance_ws', 'module_list');
+        $enabled = get_config('local_obu_timetable_usergroups', 'enable');
+        $modulelist = get_config('local_obu_timetable_usergroups', 'module_list');
         $modulesarray = array_filter(explode(",", str_replace(" ", "", $modulelist)));
 
         return array('enabled' => $enabled, 'modulelist' => $modulesarray);

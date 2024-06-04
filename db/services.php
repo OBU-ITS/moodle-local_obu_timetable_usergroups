@@ -24,7 +24,7 @@
 // Define the web service functions to install.
 $functions = array(
     'local_obu_timetable_usergroups_add_usergroup_user' => array(
-        'classname'   => 'obu_timetable_usergroups_external',
+        'classname'   => 'local_obu_timetable_usergroups_external',
         'methodname'  => 'add_usergroup_user',
         'classpath'   => 'local/obu_timetable_usergroups/externallib.php',
         'description' => 'Adds a user to a user group with the given details. Returns a result code.',
@@ -32,23 +32,15 @@ $functions = array(
         'capabilities'=> ''
     ),
     'local_obu_timetable_usergroups_remove_usergroup_user' => array(
-        'classname'   => 'obu_timetable_usergroups_external',
+        'classname'   => 'local_obu_timetable_usergroups_external',
         'methodname'  => 'remove_usergroup_user',
         'classpath'   => 'local/obu_timetable_usergroups/externallib.php',
         'description' => 'Removes a user from a user group with the given details. Returns a result code.',
         'type'        => 'write',
         'capabilities'=> ''
     ),
-    'local_obu_timetable_usergroups_create_usergroup' => array(
-        'classname'   => 'obu_timetable_usergroups_external',
-        'methodname'  => 'create_usergroup',
-        'classpath'   => 'local/obu_timetable_usergroups/externallib.php',
-        'description' => 'Creates a user group within Moodle with the given details. Returns a result code.',
-        'type'        => 'write',
-        'capabilities'=> ''
-    ),
     'local_obu_timetable_usergroups_get_settings' => array(
-        'classname'   => 'obu_timetable_usergroups_external',
+        'classname'   => 'local_obu_timetable_usergroups_external',
         'methodname'  => 'get_settings',
         'classpath'   => 'local/obu_timetable_usergroups/externallib.php',
         'description' => 'Gets the settings and gives them to the API caller.',
@@ -64,7 +56,6 @@ $services = array(
         'functions' => array(
             'local_obu_timetable_usergroups_add_usergroup_user',
             'local_obu_timetable_usergroups_remove_usergroup_user',
-            'local_obu_timetable_usergroups_create_usergroup',
             'local_obu_timetable_usergroups_get_settings'
         ),
         'restrictedusers' => 1,
