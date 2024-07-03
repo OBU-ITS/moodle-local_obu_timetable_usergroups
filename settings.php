@@ -16,22 +16,19 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * OBU Application - Language strings
- * @package    local_obu_timetable_usergroups
- * @category   local
- * @author     Joe Souch
+ * Standard lib
+ *
+ * @package    obu_timetable_usergroups
+ * @author     Emir Kamel
  * @copyright  2024, Oxford Brookes University {@link http://www.brookes.ac.uk/}
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- *
  */
 
-$string['privacy:metadata'] = 'The Timetable user groups Service plugin does not store any personal data.';
+defined('MOODLE_INTERNAL') || die;
 
-$string['pluginname'] = 'obu_timetable_usergroups';
-$string['plugintitle'] = 'OBU Timetable user groups';
-$string['header'] = 'You are using OBU Timetable user groups Plugin version {$a->version}.';
-$string['livesettings'] = 'Live Import Settings';
-$string['enable'] = 'Is enabled?';
-$string['enabledescription'] = 'Toggle to enable the plugin or disable the plugin in Moodle.';
-$string['modulelist'] = 'Module List:';
-$string['modulelistsettingtext'] = 'Section to provide list of modules to include in OBU Timetable user groups plugin.';
+if ($hassiteconfig) {
+    $settings = new admin_settingpage(get_string('pluginname', 'local_obu_timetable_usergroups'), get_string('plugintitle', 'local_obu_timetable_usergroups'));
+    $ADMIN->add('localplugins', $settings);
+    $settings->add(new admin_setting_configcheckbox('local_obu_timetable_usergroups/enable', get_string('enable', 'local_obu_timetable_usergroups'), get_string('enabledescription', 'local_obu_timetable_usergroups'), ''));
+    $settings->add(new admin_setting_configtextarea('local_obu_timetable_usergroups/module_list', get_string('modulelist', 'local_obu_timetable_usergroups'), get_string('modulelistsettingtext', 'local_obu_timetable_usergroups'), ''));
+}
