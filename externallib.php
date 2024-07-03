@@ -35,7 +35,7 @@ class local_obu_timetable_usergroups_external extends external_api {
                 'courseIdNumber' => new external_value(PARAM_TEXT, 'Course ID number'),
                 'groupName' => new external_value(PARAM_TEXT, 'Group ID number'),
                 'instanceName' => new external_value(PARAM_TEXT, 'Semester instance name'),
-                'username' => new external_value(PARAM_TEXT, 'Username'), // TODO: Or email?
+                'username' => new external_value(PARAM_TEXT, 'Username'),
             )
         );
     }
@@ -53,7 +53,7 @@ class local_obu_timetable_usergroups_external extends external_api {
 
         self::validate_context(context_system::instance());
         self::validate_parameters(
-            self::add_session_parameters(), array(
+            self::add_usergroup_user_parameters(), array(
                 'courseIdNumber' => $courseIdNumber,
                 'groupName' => $groupName,
                 'instanceName' => $instanceName,
@@ -87,6 +87,7 @@ class local_obu_timetable_usergroups_external extends external_api {
         return array('result' => -9);
     }
 
+
     public static function remove_usergroup_user_parameters() {
         return new external_function_parameters(
             array(
@@ -109,7 +110,7 @@ class local_obu_timetable_usergroups_external extends external_api {
 
         self::validate_context(context_system::instance());
         self::validate_parameters(
-            self::add_session_parameters(), array(
+            self::remove_usergroup_user_parameters(), array(
                 'groupId' => $groupid,
                 'username' => $username,
             )
@@ -133,6 +134,7 @@ class local_obu_timetable_usergroups_external extends external_api {
 
         return array('result' => -9);
     }
+
 
     public static function get_settings_parameters() {
         return new external_function_parameters(
