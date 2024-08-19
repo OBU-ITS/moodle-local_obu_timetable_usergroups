@@ -78,7 +78,10 @@ class local_obu_timetable_usergroups_external extends external_api {
             return array('result' => -4);
         }
 
-        $group = local_obu_group_manager_create_system_group($courseRecord, null, null, $instanceName, $groupName);
+        $group = ($groupName == '0' || $groupName == '')
+            ? local_obu_group_manager_create_system_group($courseRecord)
+            : local_obu_group_manager_create_system_group($courseRecord, null, null, $instanceName, $groupName);
+
         if(groups_add_member($group, $userRecord))
         {
             return array('result' => $group->id);
