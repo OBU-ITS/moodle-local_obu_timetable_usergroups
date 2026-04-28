@@ -34,7 +34,7 @@ function xmldb_local_obu_timetable_usergroups_upgrade($oldversion = 0) {
 
     $result = true;
 
-    if ($oldversion < 2026042803) {
+    if ($oldversion < 2026042804) {
         $table = new xmldb_table('local_obu_tt_ug_sync');
 
         $table->add_field('id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
@@ -67,9 +67,10 @@ function xmldb_local_obu_timetable_usergroups_upgrade($oldversion = 0) {
         $table->add_field('timemodified', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
 
         $table->add_key('primary', XMLDB_KEY_PRIMARY, ['id']);
-        $table->add_key('uniq_user', XMLDB_KEY_UNIQUE, ['courseidnumber', 'groupname', 'instancename', 'username']);
 
+// Indexes only (no unique key)
         $table->add_index('idx_group', XMLDB_INDEX_NOTUNIQUE, ['courseidnumber', 'groupname', 'instancename']);
+        $table->add_index('idx_user', XMLDB_INDEX_NOTUNIQUE, ['username']);
         $table->add_index('idx_userid', XMLDB_INDEX_NOTUNIQUE, ['userid']);
         $table->add_index('idx_groupid', XMLDB_INDEX_NOTUNIQUE, ['groupid']);
 
