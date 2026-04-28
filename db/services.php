@@ -80,7 +80,8 @@ $services = array(
         'functions' => array(
             'local_obu_timetable_usergroups_add_usergroup_user',
             'local_obu_timetable_usergroups_remove_usergroup_user',
-            'local_obu_timetable_usergroups_get_settings'
+            'local_obu_timetable_usergroups_get_settings',
+            'local_obu_timetable_usergroups_sync_usergroup_users'
         ),
         'restrictedusers' => 1,
         'enabled' => 1
