@@ -62,6 +62,14 @@ $functions = array(
         'description' => 'Gets the settings and gives them to the API caller.',
         'type'        => 'read',
         'capabilities'=> ''
+    ),
+    'local_obu_timetable_usergroups_sync_usergroup_users' => array(
+        'classname'   => 'local_obu_timetable_usergroups_external',
+        'methodname'  => 'sync_usergroup_users',
+        'classpath'   => 'local/obu_timetable_usergroups/externallib.php',
+        'description' => 'Stores recieved API calls in local table for later processing.  Returns a result code.',
+        'type'        => 'write',
+        'capabilities'=> ''
     )
 );
 
