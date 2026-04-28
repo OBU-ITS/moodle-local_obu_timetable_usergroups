@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<XMLDB PATH="local/obu_timetable_usergroups/db" VERSION="20200201" COMMENT="XMLDB file for Moodle local/obu_timetable_usergroups"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:noNamespaceSchemaLocation="../../../lib/xmldb/xmldb.xsd"
+>
+    <TABLES>
+        <TABLE NAME="local_obu_tt_ug_sync" COMMENT="Stores latest user group sync payload per course group">
+            <FIELDS>
+                <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+                <FIELD NAME="courseidnumber" TYPE="char" LENGTH="100" NOTNULL="true" SEQUENCE="false"/>
+                <FIELD NAME="payloadjson" TYPE="text" NOTNULL="true" SEQUENCE="false"/>
+                <FIELD NAME="payloadhash" TYPE="char" LENGTH="40" NOTNULL="true" SEQUENCE="false"/>
+                <FIELD NAME="is_processed" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+                <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+                <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+            </FIELDS>
+
+            <KEYS>
+                <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+                <KEY NAME="uniq_syncgroup" TYPE="unique" FIELDS="courseidnumber,groupname,instancename"/>
+            </KEYS>
+
+            <INDEXES>
+                <INDEX NAME="idx_processed" UNIQUE="false" FIELDS="is_processed"/>
+            </INDEXES>
+        </TABLE>
+
+        <TABLE NAME="local_obu_ug_sync_user" COMMENT="Stores processed Moodle group membership state">
+            <FIELDS>
+                <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+                <FIELD NAME="courseidnumber" TYPE="char" LENGTH="100" NOTNULL="true" SEQUENCE="false"/>
+                <FIELD NAME="groupname" TYPE="char" LENGTH="100" NOTNULL="false" SEQUENCE="false"/>
+                <FIELD NAME="instancename" TYPE="char" LENGTH="50" NOTNULL="true" SEQUENCE="false"/>
+                <FIELD NAME="username" TYPE="char" LENGTH="100" NOTNULL="true" SEQUENCE="false"/>
+                <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+                <FIELD NAME="groupid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+                <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+                <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+            </FIELDS>
+
+            <KEYS>
+                <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+                <KEY NAME="uniq_user" TYPE="unique" FIELDS="courseidnumber,groupname,instancename,username"/>
+            </KEYS>
+
+            <INDEXES>
+                <INDEX NAME="idx_group" UNIQUE="false" FIELDS="courseidnumber,groupname,instancename"/>
+                <INDEX NAME="idx_userid" UNIQUE="false" FIELDS="userid"/>
+                <INDEX NAME="idx_groupid" UNIQUE="false" FIELDS="groupid"/>
+            </INDEXES>
+        </TABLE>
+
+    </TABLES>
+</XMLDB>
