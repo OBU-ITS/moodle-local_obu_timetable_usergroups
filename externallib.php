@@ -400,7 +400,7 @@ class local_obu_timetable_usergroups_external extends external_api {
         self::validate_context(context_system::instance());
 
         $params = self::validate_parameters(
-            self::upsert_sessions_parameters(),
+            self::sync_usergroup_users_parameters(),
             ['courses' => $courses]
         );
 
