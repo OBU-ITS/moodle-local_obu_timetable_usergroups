@@ -17,11 +17,11 @@
 
             <KEYS>
                 <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
-                <KEY NAME="uniq_syncgroup" TYPE="unique" FIELDS="courseidnumber,groupname,instancename"/>
             </KEYS>
 
             <INDEXES>
                 <INDEX NAME="idx_processed" UNIQUE="false" FIELDS="is_processed"/>
+                <INDEX NAME="idx_courseidnumber" UNIQUE="true" FIELDS="courseidnumber"/>
             </INDEXES>
         </TABLE>
 
