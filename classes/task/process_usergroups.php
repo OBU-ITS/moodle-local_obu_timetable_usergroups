@@ -1,5 +1,7 @@
 <?php
 
+namespace local_obu_timetable_usergroups\task;
+
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -16,21 +18,22 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Version info
- *
  * @package    local_obu_timetable_usergroups
- * @author     Joe Souch
- * @copyright  2024, Oxford Brookes University {@link http://www.brookes.ac.uk/}
+ * @author     Emir Kamel
+ * @copyright  2026, Oxford Brookes University {@link http://www.brookes.ac.uk/}
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-defined('MOODLE_INTERNAL') || die();
+class process_usergroups extends \core\task\scheduled_task{
 
-$plugin->component = 'local_obu_timetable_usergroups';
-$plugin->version = 2026042900;
-$plugin->requires = 2015111604;
-$plugin->maturity = MATURITY_STABLE;
-$plugin->release = '1.3.1.0';
-$plugin->dependencies = array(
-    'local_obu_group_manager' => 2024060401
-);
+    public function get_name() : string {
+        return "Process Usergroups Task";
+    }
+
+    public function execute() {
+        $trace = new \text_progress_trace();
+
+        $handler = new \local_obu_timetable_usergroups\handlers\process_usergroups_handler($trace);
+        $handler->handle_process_usergroups();
+    }
+}
