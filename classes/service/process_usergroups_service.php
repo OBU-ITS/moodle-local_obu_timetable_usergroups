@@ -57,9 +57,44 @@ class process_usergroups_service {
     /**
      * Main function for processing sync usergroup users API calls.
      */
-    public function processUsergroups(\progress_trace $trace, $unprocessedUsergroupsCourses) : void {
+    public function processUsergroups(\progress_trace $trace, $unprocessedUsergroupsCoursesRows) : void {
         global $DB;
-        //TODO:: code here
 
+        foreach ($unprocessedUsergroupsCoursesRows as $unprocessedUsergroupsCoursesRow) {
+            $payload = json_decode($unprocessedUsergroupsCoursesRow->payloadjson, true);
+            $courseIdNumber = $unprocessedUsergroupsCoursesRow->courseidnumber;
+
+            $course = $DB->get_record('course', ['idnumber' => $courseIdNumber]);
+            if (!$course) {
+                $trace->output("Course with ID number '{$courseIdNumber}' not found.");
+                continue;
+            }
+
+            $newCourseUserGroupEnrolments = $this->getNewCourseUsergroupEnrolments($trace, $courseIdNumber, $payload);
+            $oldCourseUserGroupEnrolments = $this->getOldCourseUsergroupEnrolments($trace, $courseIdNumber, $payload);
+
+        }
+    }
+
+    private function getNewCourseUsergroupEnrolments($trace, $courseIdNumber, $payload) : array {
+        $newCourseUserGroups = [];
+
+        foreach ($payload['groups'] as $group) {
+            $groupName = $group['groupName'];
+            $instanceName = $group['instanceName'];
+
+            foreach ($group['usernames'] as $username) {
+                $key = $courseIdNumber . '|' . $groupName . '|' . $instanceName . '|' . $username;
+
+                $newCourseUserGroups[$key] = [
+                    'courseidnumber' => $courseIdNumber,
+                    'groupname' => $groupName,
+                    'instancename' => $instanceName,
+                    'username' => $username,
+                ];
+            }
+        }
+
+        return $newCourseUserGroups;
     }
 }
