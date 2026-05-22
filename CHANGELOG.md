@@ -1,10 +1,9 @@
 Change Log | local_obu_timetable_usergroups
 ==========
 
-v.1.1.0
+v.1.3.1
 -------
-- API endpoint to bulk add user groups
-- API endpoint to bulk remove user groups
+- New API and scheduled task to automatically sync usergroups.
 
 v.1.2.0
 -------
@@ -12,3 +11,8 @@ v.1.2.0
 - Admin button (?) to re-sync modules
 - API endpoint to retrieve modules wanting re-sync
 - API endpoint to receive re-sync data
+
+v.1.1.0
+-------
+- API endpoint to bulk add user groups
+- API endpoint to bulk remove user groups

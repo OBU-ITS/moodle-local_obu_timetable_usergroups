@@ -65,14 +65,18 @@ class process_usergroups_service {
 
         $coursesByIdNumber = $this->getCoursesByIdNumber($courseIdNumbers);
 
+        $rowsToMarkProcessed = [];
+
         foreach ($unprocessedUsergroupsCoursesRows as $unprocessedUsergroupsCoursesRow) {
             $payload = json_decode($unprocessedUsergroupsCoursesRow->payloadjson, true);
             $courseIdNumber = $unprocessedUsergroupsCoursesRow->courseidnumber;
+            $course = $coursesByIdNumber[$courseIdNumber];
 
-            if (!isset($coursesByIdNumber[$courseIdNumber])) {
+            if (!isset($course)) {
                 $trace->output("Course with ID number '{$courseIdNumber}' not found.");
                 continue;
             }
+
 
             $newCourseUserGroupEnrolments = $this->getNewCourseUsergroupEnrolments($trace, $courseIdNumber, $payload);
             $oldCourseUserGroupEnrolments = $oldCourseUserGroupEnrolmentsByCourse[$courseIdNumber] ?? [];
@@ -81,6 +85,17 @@ class process_usergroups_service {
             $createkeys = array_diff(array_keys($newCourseUserGroupEnrolments), array_keys($oldCourseUserGroupEnrolments));
 
             //TODO:: loop through deletes and creates and action them
+            $hasfailures = false;
+
+            $this->processDeletes($trace, $deletekeys, $oldCourseUserGroupEnrolments, $hasfailures);
+            $this->processCreates($trace, $createkeys, $newCourseUserGroupEnrolments, $course, $hasfailures);
+
+            $rowsToMarkProcessed[$unprocessedUsergroupsCoursesRow->id] = [
+                'id' => $unprocessedUsergroupsCoursesRow->id,
+                'payloadhash' => $unprocessedUsergroupsCoursesRow->payloadhash,
+            ];
+            
+            $this->markProcessedRows($trace, $rowsToMarkProcessed);
         }
     }
 
@@ -91,7 +106,7 @@ class process_usergroups_service {
             return [];
         }
 
-        list($insql, $params) = $DB->get_in_or_equal($courseIdNumbers, SQL_PARAMS_NAMED);
+        list($insql, $params) = $DB->get_in_or_equal($courseIdNumbers);
 
         $sql = "SELECT *
               FROM {course}
@@ -182,5 +197,166 @@ class process_usergroups_service {
 
     private function buildUsergroupKey($courseIdNumber, $groupName, $instanceName, $username) : string {
         return trim($courseIdNumber) . '|' . trim($groupName ?? '') . '|' . trim($instanceName) . '|' . trim($username);
+    }
+
+    private function buildGroupKey($courseIdNumber, $groupName, $instanceName) : string {
+        return trim($courseIdNumber) . '|' .
+            trim($groupName ?? '') . '|' .
+            trim($instanceName);
+    }
+
+    private function buildUsernamesForCreates(array $createkeys, array $newCourseUserGroupEnrolments) : array {
+        $usernames = [];
+
+        foreach ($createkeys as $key) {
+            $usernames[] = $newCourseUserGroupEnrolments[$key]['username'];
+        }
+
+        return array_unique($usernames);
+    }
+
+    private function getUsersByUsername(array $usernames) : array {
+        global $DB;
+
+        if (empty($usernames)) {
+            return [];
+        }
+
+        list($insql, $params) = $DB->get_in_or_equal($usernames);
+
+        $sql = "SELECT *
+              FROM {user}
+             WHERE username $insql
+               AND deleted = 0";
+
+        $users = $DB->get_records_sql($sql, $params);
+
+        $usersByUsername = [];
+
+        foreach ($users as $user) {
+            $usersByUsername[$user->username] = $user;
+        }
+
+        return $usersByUsername;
+    }
+
+    private function processDeletes(\progress_trace $trace, $deletekeys, $oldCourseUserGroupEnrolments, &$hasfailures) : void {
+        global $DB;
+
+        $lookupidsToDelete = [];
+
+        foreach ($deletekeys as $key) {
+            $oldCourseUserGroupEnrolment = $oldCourseUserGroupEnrolments[$key];
+
+            try {
+                $removed = groups_remove_member(
+                    (int)$oldCourseUserGroupEnrolment['groupid'],
+                    (int)$oldCourseUserGroupEnrolment['userid']
+                );
+
+                if ($removed) {
+                    $lookupidsToDelete[] = (int)$oldCourseUserGroupEnrolment['id'];
+                } else {
+                    $hasfailures = true;
+                    $trace->output("Failed removing {$key}");
+                }
+
+            } catch (\Throwable $e) {
+                $hasfailures = true;
+                $trace->output("Failed removing {$key}: " . $e->getMessage());
+            }
+        }
+
+        if (!empty($lookupidsToDelete)) {
+            list($insql, $params) = $DB->get_in_or_equal($lookupidsToDelete);
+
+            $DB->delete_records_select(
+                'local_obu_ug_sync_user',
+                "id $insql",
+                $params
+            );
+        }
+    }
+
+    private function processCreates(\progress_trace $trace, array $createkeys, array $newCourseUserGroupEnrolments, \stdClass $course, bool &$hasfailures) : void {
+        global $DB;
+
+        if (empty($createkeys)) {
+            return;
+        }
+
+        $usernames = $this->buildUsernamesForCreates($createkeys, $newCourseUserGroupEnrolments);
+        $usersByUsername = $this->getUsersByUsername($usernames);
+
+        $courseContext = \context_course::instance($course->id);
+        $groupCache = [];
+        $recordsToInsert = [];
+        $currenttime = time();
+
+        foreach ($createkeys as $key) {
+            $new = $newCourseUserGroupEnrolments[$key];
+
+            if (!isset($usersByUsername[$new['username']])) {
+                $hasfailures = true;
+                $trace->output("User '{$new['username']}' not found.");
+                continue;
+            }
+
+            $user = $usersByUsername[$new['username']];
+
+            if (!is_enrolled($courseContext, $user->id, '', true)) {
+                $hasfailures = true;
+                $trace->output("User '{$new['username']}' not enrolled on course '{$course->idnumber}'.");
+                continue;
+            }
+
+            $groupkey = $this->buildGroupKey(
+                $new['courseidnumber'],
+                $new['groupname'],
+                $new['instancename']
+            );
+
+            if (!isset($groupCache[$groupkey])) {
+                $groupCache[$groupkey] = ($new['groupname'] === '0' || $new['groupname'] === '')
+                    ? local_obu_group_manager_create_system_group($course)
+                    : local_obu_group_manager_create_system_group(
+                        $course,
+                        null,
+                        null,
+                        $new['instancename'],
+                        $new['groupname']
+                    );
+            }
+
+            $group = $groupCache[$groupkey];
+
+            if (!$DB->record_exists('groups_members', [
+                'groupid' => $group->id,
+                'userid' => $user->id,
+            ])) {
+                $added = groups_add_member($group->id, $user->id);
+
+                if (!$added) {
+                    $hasfailures = true;
+                    $trace->output("Failed adding {$new['username']} to group {$group->id}.");
+                    continue;
+                }
+            }
+
+            $recordsToInsert[] = (object)[
+                'courseidnumber' => $new['courseidnumber'],
+                'groupname' => $new['groupname'],
+                'instancename' => $new['instancename'],
+                'username' => $new['username'],
+                'userid' => $user->id,
+                'groupid' => $group->id,
+                'timecreated' => $currenttime,
+                'timemodified' => $currenttime,
+            ];
+        }
+
+        if (!empty($recordsToInsert)) {
+            $DB->insert_records('local_obu_ug_sync_user', $recordsToInsert);
+        }
     }
 }
