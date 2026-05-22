@@ -26,7 +26,6 @@ namespace local_obu_timetable_usergroups\service;
 defined('MOODLE_INTERNAL') || die();
 
 global $CFG;
-require_once($CFG->dirroot . '/local/obu_timetable_usergroups/locallib.php');
 
 class process_usergroups_service {
     private static ?process_usergroups_service $instance = null;
