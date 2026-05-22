@@ -58,7 +58,6 @@ class process_usergroups_service {
      * Main function for processing sync usergroup users API calls.
      */
     public function processUsergroups(\progress_trace $trace, $unprocessedUsergroupsCoursesRows) : void {
-        global $DB;
 
         $courseIdNumbers = $this->buildCourseIdNumbers($unprocessedUsergroupsCoursesRows);
         $oldCourseUserGroupEnrolmentsByCourse = $this->getOldCourseUsergroupEnrolments($trace, $courseIdNumbers);
@@ -94,9 +93,9 @@ class process_usergroups_service {
                 'id' => $unprocessedUsergroupsCoursesRow->id,
                 'payloadhash' => $unprocessedUsergroupsCoursesRow->payloadhash,
             ];
-            
-            $this->markProcessedRows($trace, $rowsToMarkProcessed);
         }
+
+        $this->markProcessedRows($trace, $rowsToMarkProcessed);
     }
 
     private function getCoursesByIdNumber(array $courseIdNumbers) : array {
