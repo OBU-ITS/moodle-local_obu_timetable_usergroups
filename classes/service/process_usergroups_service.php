@@ -357,4 +357,53 @@ class process_usergroups_service {
             $DB->insert_records('local_obu_ug_sync_user', $recordsToInsert);
         }
     }
+
+    private function markProcessedRows(\progress_trace $trace, array $rowsToMarkProcessed) : void {
+        global $DB;
+
+        if (empty($rowsToMarkProcessed)) {
+            return;
+        }
+
+        $ids = array_keys($rowsToMarkProcessed);
+
+        list($insql, $params) = $DB->get_in_or_equal($ids);
+
+        $currentrows = $DB->get_records_select(
+            'local_obu_tt_ug_sync',
+            "id {$insql}",
+            $params,
+            '',
+            'id, payloadhash'
+        );
+
+        $currenttime = time();
+        $safeids = [];
+
+        foreach ($rowsToMarkProcessed as $id => $original) {
+            if (
+                isset($currentrows[$id]) &&
+                $currentrows[$id]->payloadhash === $original['payloadhash']
+            ) {
+                $safeids[] = $id;
+            } else {
+                $trace->output("Sync row {$id} changed during processing, leaving unprocessed.");
+            }
+        }
+
+        if (empty($safeids)) {
+            return;
+        }
+
+        list($safeinsql, $safeparams) = $DB->get_in_or_equal($safeids);
+
+        $safeparams[] = $currenttime;
+
+        $sql = "UPDATE {local_obu_tt_ug_sync}
+               SET is_processed = 1,
+                   timemodified = ?
+             WHERE id {$safeinsql}";
+
+        $DB->execute($sql, $safeparams);
+    }
 }
