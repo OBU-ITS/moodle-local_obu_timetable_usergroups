@@ -27,6 +27,8 @@ defined('MOODLE_INTERNAL') || die();
 
 global $CFG;
 
+require_once($CFG->dirroot . "/local/obu_group_manager/lib.php");
+
 class process_usergroups_service {
     private static ?process_usergroups_service $instance = null;
     public static function getInstance() : process_usergroups_service {
