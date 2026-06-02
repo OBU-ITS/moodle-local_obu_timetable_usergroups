@@ -394,7 +394,7 @@ class local_obu_timetable_usergroups_external extends external_api {
         );
     }
 
-    public static function sync_usergroup_users($courses) {
+    public static function sync_usergroup_users($courses) { //TODO:: rename this to _new so it can run side by side with the existing implementations
         global $DB;
 
         self::validate_context(context_system::instance());
@@ -431,7 +431,7 @@ class local_obu_timetable_usergroups_external extends external_api {
     }
 
     //TODO: This function will just store info in the tables, sched task goes through and runs deltas, also need event listener for users enrolled on courses
-    public static function sync_usergroup_users_old($params) {
+    public static function sync_usergroup_users_old($params) { //TODO:: rename this to what it was
         global $DB;
 
         $params = self::validate_parameters(self::sync_usergroup_users_parameters(), $params);

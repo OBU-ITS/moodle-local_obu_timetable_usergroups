@@ -70,13 +70,13 @@ class process_usergroups_service {
         foreach ($unprocessedUsergroupsCoursesRows as $unprocessedUsergroupsCoursesRow) {
             $payload = json_decode($unprocessedUsergroupsCoursesRow->payloadjson, true);
             $courseIdNumber = $unprocessedUsergroupsCoursesRow->courseidnumber;
-            $course = $coursesByIdNumber[$courseIdNumber];
 
-            if (!isset($course)) {
+            if (!isset($coursesByIdNumber[$courseIdNumber])) {
                 $trace->output("Course with ID number '{$courseIdNumber}' not found.");
                 continue;
             }
 
+            $course = $coursesByIdNumber[$courseIdNumber];
 
             $newCourseUserGroupEnrolments = $this->getNewCourseUsergroupEnrolments($trace, $courseIdNumber, $payload);
             $oldCourseUserGroupEnrolments = $oldCourseUserGroupEnrolmentsByCourse[$courseIdNumber] ?? [];
@@ -84,7 +84,6 @@ class process_usergroups_service {
             $deletekeys = array_diff(array_keys($oldCourseUserGroupEnrolments), array_keys($newCourseUserGroupEnrolments));
             $createkeys = array_diff(array_keys($newCourseUserGroupEnrolments), array_keys($oldCourseUserGroupEnrolments));
 
-            //TODO:: loop through deletes and creates and action them
             $hasfailures = false;
 
             $this->processDeletes($trace, $deletekeys, $oldCourseUserGroupEnrolments, $hasfailures);
@@ -164,28 +163,41 @@ class process_usergroups_service {
 
         list($insql, $params) = $DB->get_in_or_equal($courseIdNumbers);
 
-        $sql = "SELECT *
-              FROM {local_obu_ug_sync_user}
-             WHERE courseidnumber $insql";
+        $sql = "SELECT gm.id AS membershipid,
+                   c.idnumber AS courseidnumber,
+                   g.id AS groupid,
+                   g.name AS groupname,
+                   g.idnumber AS groupidnumber,
+                   u.id AS userid,
+                   u.username
+              FROM {course} c
+              JOIN {groups} g ON g.courseid = c.id
+              JOIN {groups_members} gm ON gm.groupid = g.id
+              JOIN {user} u ON u.id = gm.userid
+             WHERE c.idnumber $insql
+               AND " . $DB->sql_like('g.idnumber', '?', false);
+
+        $params[] = SYSTEM_IDENTIFIER . '%';
 
         $rows = $DB->get_records_sql($sql, $params);
 
         $results = [];
 
         foreach ($rows as $row) {
+            $groupDetails = $this->parseGroupDetailsFromGroupIdnumber($row->groupidnumber);
 
             $key = $this->buildUsergroupKey(
                 $row->courseidnumber,
-                $row->groupname,
-                $row->instancename,
+                $groupDetails['groupname'],
+                $groupDetails['instancename'],
                 $row->username
             );
 
             $results[$row->courseidnumber][$key] = [
-                'id' => $row->id,
+                'membershipid' => $row->membershipid,
                 'courseidnumber' => $row->courseidnumber,
-                'groupname' => $row->groupname,
-                'instancename' => $row->instancename,
+                'groupname' => $groupDetails['groupname'],
+                'instancename' => $groupDetails['instancename'],
                 'username' => $row->username,
                 'userid' => $row->userid,
                 'groupid' => $row->groupid,
@@ -193,6 +205,18 @@ class process_usergroups_service {
         }
 
         return $results;
+    }
+
+    private function parseGroupDetailsFromGroupIdnumber(string $groupidnumber): array {
+        $parts = explode('.', $groupidnumber);
+
+        // Format: obuSys.2025.ACFI4006_S1_1.S1.Set6
+        // Parts:  0      1    2              3  4
+
+        return [
+            'instancename' => $parts[3] ?? null,
+            'groupname' => $parts[4] ?? null,
+        ];
     }
 
     private function buildUsergroupKey($courseIdNumber, $groupName, $instanceName, $username) : string {
@@ -243,7 +267,7 @@ class process_usergroups_service {
     private function processDeletes(\progress_trace $trace, $deletekeys, $oldCourseUserGroupEnrolments, &$hasfailures) : void {
         global $DB;
 
-        $lookupidsToDelete = [];
+        $cacheRowsToDelete = [];
 
         foreach ($deletekeys as $key) {
             $oldCourseUserGroupEnrolment = $oldCourseUserGroupEnrolments[$key];
@@ -254,12 +278,18 @@ class process_usergroups_service {
                     (int)$oldCourseUserGroupEnrolment['userid']
                 );
 
-                if ($removed) {
-                    $lookupidsToDelete[] = (int)$oldCourseUserGroupEnrolment['id'];
-                } else {
+                if (!$removed) {
                     $hasfailures = true;
                     $trace->output("Failed removing {$key}");
+                    continue;
                 }
+
+                $cacheRowsToDelete[] = [
+                    'courseidnumber' => $oldCourseUserGroupEnrolment['courseidnumber'],
+                    'groupname' => $oldCourseUserGroupEnrolment['groupname'],
+                    'instancename' => $oldCourseUserGroupEnrolment['instancename'],
+                    'username' => $oldCourseUserGroupEnrolment['username'],
+                ];
 
             } catch (\Throwable $e) {
                 $hasfailures = true;
@@ -267,12 +297,25 @@ class process_usergroups_service {
             }
         }
 
-        if (!empty($lookupidsToDelete)) {
-            list($insql, $params) = $DB->get_in_or_equal($lookupidsToDelete);
+        if (!empty($cacheRowsToDelete)) {
+            $conditions = [];
+            $params = [];
+
+            foreach ($cacheRowsToDelete as $i => $row) {
+                $conditions[] = "(courseidnumber = :course{$i}
+                AND groupname = :group{$i}
+                AND instancename = :instance{$i}
+                AND username = :username{$i})";
+
+                $params["course{$i}"] = $row['courseidnumber'];
+                $params["group{$i}"] = $row['groupname'];
+                $params["instance{$i}"] = $row['instancename'];
+                $params["username{$i}"] = $row['username'];
+            }
 
             $DB->delete_records_select(
                 'local_obu_ug_sync_user',
-                "id $insql",
+                implode(' OR ', $conditions),
                 $params
             );
         }
@@ -343,16 +386,23 @@ class process_usergroups_service {
                 }
             }
 
-            $recordsToInsert[] = (object)[
+            if (!$DB->record_exists('local_obu_ug_sync_user', [
                 'courseidnumber' => $new['courseidnumber'],
                 'groupname' => $new['groupname'],
                 'instancename' => $new['instancename'],
                 'username' => $new['username'],
-                'userid' => $user->id,
-                'groupid' => $group->id,
-                'timecreated' => $currenttime,
-                'timemodified' => $currenttime,
-            ];
+            ])) {
+                $recordsToInsert[] = (object)[
+                    'courseidnumber' => $new['courseidnumber'],
+                    'groupname' => $new['groupname'],
+                    'instancename' => $new['instancename'],
+                    'username' => $new['username'],
+                    'userid' => $user->id,
+                    'groupid' => $group->id,
+                    'timecreated' => $currenttime,
+                    'timemodified' => $currenttime,
+                ];
+            }
         }
 
         if (!empty($recordsToInsert)) {
@@ -399,13 +449,13 @@ class process_usergroups_service {
 
         list($safeinsql, $safeparams) = $DB->get_in_or_equal($safeids);
 
-        $safeparams[] = $currenttime;
+        $params = array_merge([$currenttime], $safeparams);
 
         $sql = "UPDATE {local_obu_tt_ug_sync}
                SET is_processed = 1,
                    timemodified = ?
              WHERE id {$safeinsql}";
 
-        $DB->execute($sql, $safeparams);
+        $DB->execute($sql, $params);
     }
 }
