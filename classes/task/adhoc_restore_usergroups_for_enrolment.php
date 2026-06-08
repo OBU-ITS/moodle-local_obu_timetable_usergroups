@@ -30,7 +30,6 @@ namespace local_obu_timetable_usergroups\task;
 defined('MOODLE_INTERNAL') || die();
 
 global $CFG;
-require_once($CFG->dirroot . '/local/obu_timetable_usergroups/locallib.php');
 require_once($CFG->dirroot . '/group/lib.php');
 
 class adhoc_restore_usergroups_for_enrolment extends \core\task\adhoc_task {
