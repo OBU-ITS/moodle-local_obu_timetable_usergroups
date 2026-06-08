@@ -28,6 +28,6 @@ defined('MOODLE_INTERNAL') || die();
 $observers = [
     [
         'eventname' => '\core\event\user_enrolment_created',
-        'callback'  => '\local_obu_assessment_extensions\observers\user_enrolment_observer::user_enrolled_on_course',
+        'callback'  => '\local_obu_timetable_usergroups\observers\user_enrolment_observer::user_enrolled_on_course',
     ],
 ];
