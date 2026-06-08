@@ -38,8 +38,8 @@ class adhoc_restore_usergroups_for_enrolment extends \core\task\adhoc_task {
         global $DB;
 
         $customData = $this->get_custom_data();
-        $userId = (int)$customData->userId;
-        $courseId = (int)$customData->courseId;
+        $userId = (int)$customData->userid;
+        $courseId = (int)$customData->courseid;
 
         if (empty($userId) || empty($courseId)) {
             return;

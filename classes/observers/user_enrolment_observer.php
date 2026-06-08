@@ -28,18 +28,13 @@ namespace local_obu_timetable_usergroups\observers;
 
 defined('MOODLE_INTERNAL') || die();
 
-global $CFG;
-require_once($CFG->dirroot . '/local/obu_timetable_usergroups/locallib.php');
 class user_enrolment_observer {
     public static function user_enrolled_on_course(\core\event\user_enrolment_created $event) {
-        $courseId = $event->courseid;
-        $userId = $event->relateduserid;
-
         $task = new \local_obu_timetable_usergroups\task\adhoc_restore_usergroups_for_enrolment();
 
         $task->set_custom_data([
-            'userid' => $userId,
-            'courseid' => $courseId,
+            'userid' => $event->relateduserid,
+            'courseid' => $event->courseid,
         ]);
 
         \core\task\manager::queue_adhoc_task($task);
