@@ -16,21 +16,32 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Version info
+ * Plugin user enrolled on course observer
  *
  * @package    local_obu_timetable_usergroups
- * @author     Joe Souch
- * @copyright  2024, Oxford Brookes University {@link http://www.brookes.ac.uk/}
+ * @author     Emir Kamel
+ * @copyright  2026, Oxford Brookes University {@link http://www.brookes.ac.uk/}
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+namespace local_obu_timetable_usergroups\observers;
+
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->component = 'local_obu_timetable_usergroups';
-$plugin->version = 2026060800;
-$plugin->requires = 2015111604;
-$plugin->maturity = MATURITY_STABLE;
-$plugin->release = '1.3.4.0';
-$plugin->dependencies = array(
-    'local_obu_group_manager' => 2024060401
-);
+global $CFG;
+require_once($CFG->dirroot . '/local/obu_timetable_usergroups/locallib.php');
+class user_enrolment_observer {
+    public static function user_enrolled_on_course(\core\event\user_enrolment_created $event) {
+        $courseId = $event->courseid;
+        $userId = $event->relateduserid;
+
+        $task = new \local_obu_timetable_usergroups\task\adhoc_restore_usergroups_for_enrolment();
+
+        $task->set_custom_data([
+            'userid' => $userId,
+            'courseid' => $courseId,
+        ]);
+
+        \core\task\manager::queue_adhoc_task($task);
+    }
+}
