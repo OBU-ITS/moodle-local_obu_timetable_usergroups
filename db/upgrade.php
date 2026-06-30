@@ -34,7 +34,7 @@ function xmldb_local_obu_timetable_usergroups_upgrade($oldversion = 0) {
 
     $result = true;
 
-    if ($oldversion < 2026042804) {
+    if ($oldversion < 2026063000) {
         $table = new xmldb_table('local_obu_tt_ug_sync');
 
         $table->add_field('id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
