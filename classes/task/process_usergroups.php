@@ -33,6 +33,11 @@ class process_usergroups extends \core\task\scheduled_task{
     public function execute() {
         $trace = new \text_progress_trace();
 
+        if (!get_config('local_obu_timetable_usergroups', 'enable')) {
+            mtrace('OBU timetable usergroups sync is disabled.');
+            return;
+        }
+
         $handler = new \local_obu_timetable_usergroups\handlers\process_usergroups_handler($trace);
         $handler->handle_process_usergroups();
     }
