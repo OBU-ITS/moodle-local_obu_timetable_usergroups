@@ -69,7 +69,7 @@ $functions = array(
         'classpath'   => 'local/obu_timetable_usergroups/externallib.php',
         'description' => 'Stores recieved API calls in local table for later processing.  Returns a result code.',
         'type'        => 'write',
-        'capabilities'=> ''
+        'capabilities'=> 'local/obu_timetable_usergroups:syncusergroups'
     )
 );
 
