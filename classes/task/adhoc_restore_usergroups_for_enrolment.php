@@ -51,6 +51,12 @@ class adhoc_restore_usergroups_for_enrolment extends \core\task\adhoc_task {
             return;
         }
 
+        $context = \context_course::instance($courseId);
+
+        if (!is_enrolled($context, $userId, '', true)) {
+            return;
+        }
+
         $cachedmemberships = $DB->get_records('local_obu_ug_sync_user', [
             'courseidnumber' => $course->idnumber,
             'userid' => $userId,
