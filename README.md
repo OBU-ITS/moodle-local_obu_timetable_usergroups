@@ -134,3 +134,80 @@ Ensure:
 - Web services are enabled.
 - External systems submit complete usergroup membership payloads.
 - Group management permissions are correctly configured.
+---
+
+## Manual deployment / configuration
+
+After installing or updating the plugin:
+
+1. **Install required dependency**
+
+   * Ensure `local_obu_group_manager` is installed.
+
+2. **Run Moodle upgrade**
+
+   * Install the plugin through the Moodle UI, or run:
+
+```bash
+php admin/cli/upgrade.php
+```
+
+3. **Enable required Moodle services**
+
+   * Ensure web services are enabled.
+   * Enable the required protocol, e.g. REST.
+   * Ensure Moodle cron is running.
+
+4. **Configure the external service**
+
+   * Add the required functions to the external service.
+   * During transition, both legacy and new functions may be enabled:
+
+```text
+local_obu_timetable_usergroups_add_usergroup_user
+local_obu_timetable_usergroups_remove_usergroup_user
+local_obu_timetable_usergroups_sync_usergroup_users
+```
+
+5. **Create and assign the API role**
+
+   * Create a dedicated system role for the web service user.
+   * Assign the required plugin capabilities:
+
+```text
+local/obu_timetable_usergroups:manageusergroups
+local/obu_timetable_usergroups:syncusergroups
+```
+
+```
+- Assign the role at system level to the Moodle user that owns the web service token.
+```
+
+6. **Create or verify the web service token**
+- The token should belong to the dedicated integration user.
+- If the external service uses authorised users, ensure that user is authorised for the service.
+
+7. **Check plugin/task settings**
+
+   * Enable the plugin if an enable setting is present.
+   * Check the scheduled task is enabled under:
+
+```text
+Site administration → Server → Tasks → Scheduled tasks
+```
+
+---
+
+## Transition notes
+
+The legacy add/remove API functions are kept temporarily so the old integration can run alongside the new source-of-truth sync process.
+
+Once migration is complete:
+
+* Remove the legacy functions from the external service.
+* Remove the legacy capability from the API role if no longer needed.
+* Keep only:
+
+```text
+local_obu_timetable_usergroups_sync_usergroup_users
+```
