@@ -68,11 +68,37 @@ class process_usergroups_service {
         $rowsToMarkProcessed = [];
 
         foreach ($unprocessedUsergroupsCoursesRows as $unprocessedUsergroupsCoursesRow) {
-            $payload = json_decode($unprocessedUsergroupsCoursesRow->payloadjson, true);
+            try {
+                $payload = json_decode($unprocessedUsergroupsCoursesRow->payloadjson, true, 512, JSON_THROW_ON_ERROR);
+            } catch (\JsonException $e) {
+                $trace->output("Invalid JSON for sync row {$unprocessedUsergroupsCoursesRow->id}: " . $e->getMessage());
+
+                $rowsToMarkProcessed[$unprocessedUsergroupsCoursesRow->id] = [
+                    'id' => $unprocessedUsergroupsCoursesRow->id,
+                    'payloadhash' => $unprocessedUsergroupsCoursesRow->payloadhash,
+                ];
+                continue;
+            }
+
+            if (!isset($payload['groups']) || !is_array($payload['groups'])) {
+                $trace->output("Invalid payload structure for sync row {$unprocessedUsergroupsCoursesRow->id}.");
+
+                $rowsToMarkProcessed[$unprocessedUsergroupsCoursesRow->id] = [
+                    'id' => $unprocessedUsergroupsCoursesRow->id,
+                    'payloadhash' => $unprocessedUsergroupsCoursesRow->payloadhash,
+                ];
+                continue;
+            }
+
             $courseIdNumber = $unprocessedUsergroupsCoursesRow->courseidnumber;
 
             if (!isset($coursesByIdNumber[$courseIdNumber])) {
                 $trace->output("Course with ID number '{$courseIdNumber}' not found.");
+
+                $rowsToMarkProcessed[$unprocessedUsergroupsCoursesRow->id] = [
+                    'id' => $unprocessedUsergroupsCoursesRow->id,
+                    'payloadhash' => $unprocessedUsergroupsCoursesRow->payloadhash,
+                ];
                 continue;
             }
 
