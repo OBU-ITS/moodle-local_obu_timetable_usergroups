@@ -29,6 +29,28 @@ require_once($CFG->dirroot . '/group/lib.php');
 
 class local_obu_timetable_usergroups_external extends external_api {
 
+    private static function require_manage_access(): void {
+        $context = context_system::instance();
+
+        self::validate_context($context);
+
+        require_capability(
+            'local/obu_timetable_usergroups:manageusergroups',
+            $context
+        );
+    }
+
+    private static function require_sync_access(): void {
+        $context = context_system::instance();
+
+        self::validate_context($context);
+
+        require_capability(
+            'local/obu_timetable_usergroups:syncusergroups',
+            $context
+        );
+    }
+
     public static function add_usergroup_user_parameters() {
         return new external_function_parameters(
             array(
@@ -50,6 +72,8 @@ class local_obu_timetable_usergroups_external extends external_api {
 
     public static function add_usergroup_user($courseIdNumber, $groupName, $instanceName, $username) {
         global $DB;
+
+        self::require_manage_access();
 
         self::validate_context(context_system::instance());
         self::validate_parameters(
@@ -141,6 +165,8 @@ class local_obu_timetable_usergroups_external extends external_api {
 
     public static function add_usergroup_users($params) {
         global $DB;
+
+        self::require_manage_access();
 
         $params = self::validate_parameters(self::add_usergroup_users_parameters(), $params);
 
@@ -239,6 +265,8 @@ class local_obu_timetable_usergroups_external extends external_api {
     public static function remove_usergroup_user($groupid, $username) {
         global $DB;
 
+        self::require_manage_access();
+
         self::validate_context(context_system::instance());
         self::validate_parameters(
             self::remove_usergroup_user_parameters(), array(
@@ -306,6 +334,8 @@ class local_obu_timetable_usergroups_external extends external_api {
 
     public static function remove_usergroup_users($params) {
         global $DB;
+
+        self::require_manage_access();
 
         $params = self::validate_parameters(self::remove_usergroup_users_parameters(), $params);
 
@@ -397,6 +427,7 @@ class local_obu_timetable_usergroups_external extends external_api {
     public static function sync_usergroup_users($courses) { //TODO:: rename this to _new so it can run side by side with the existing implementations
         global $DB;
 
+        self::require_sync_access();
         self::validate_context(context_system::instance());
 
         $params = self::validate_parameters(

@@ -24,6 +24,13 @@
 defined('MOODLE_INTERNAL') || die();
 
 $capabilities = [
+    'local/obu_timetable_usergroups:manageusergroups' => [
+        'riskbitmask' => RISK_PERSONAL | RISK_DATALOSS,
+        'captype' => 'write',
+        'contextlevel' => CONTEXT_SYSTEM,
+        'archetypes' => [],
+    ],
+
     'local/obu_timetable_usergroups:syncusergroups' => [
         'riskbitmask' => RISK_PERSONAL | RISK_DATALOSS,
         'captype' => 'write',
