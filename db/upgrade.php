@@ -81,5 +81,39 @@ function xmldb_local_obu_timetable_usergroups_upgrade($oldversion = 0) {
         upgrade_plugin_savepoint(true, 2026042803, 'local', 'obu_timetable_usergroups');
     }
 
+    if ($oldversion < 2026072000) {
+        $table = new xmldb_table('local_obu_tt_ug_sync');
+
+        // Drop the old unique index on courseidnumber if it exists.
+        $uniqueindex = new xmldb_index(
+            'idx_courseidnumber',
+            XMLDB_INDEX_UNIQUE,
+            ['courseidnumber']
+        );
+
+        if ($dbman->index_exists($table, $uniqueindex)) {
+            $dbman->drop_index($table, $uniqueindex);
+        }
+
+        // Add the replacement non-unique index.
+        $nonuniqueindex = new xmldb_index(
+            'idx_courseidnumber',
+            XMLDB_INDEX_NOTUNIQUE,
+            ['courseidnumber']
+        );
+
+        if (!$dbman->index_exists($table, $nonuniqueindex)) {
+            $dbman->add_index($table, $nonuniqueindex);
+        }
+
+        upgrade_plugin_savepoint(
+            true,
+            2026072001,
+            'local',
+            'obu_timetable_usergroups'
+        );
+    }
+
+
     return $result;
 }
