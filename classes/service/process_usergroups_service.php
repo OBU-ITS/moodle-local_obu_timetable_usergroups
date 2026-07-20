@@ -89,6 +89,10 @@ class process_usergroups_service {
             $this->processDeletes($trace, $deletekeys, $oldCourseUserGroupEnrolments, $hasfailures);
             $this->processCreates($trace, $createkeys, $newCourseUserGroupEnrolments, $course, $hasfailures);
 
+            if ($hasfailures) {
+                $trace->output("Sync row {$unprocessedUsergroupsCoursesRow->id} completed with failures.");
+            }
+
             $rowsToMarkProcessed[$unprocessedUsergroupsCoursesRow->id] = [
                 'id' => $unprocessedUsergroupsCoursesRow->id,
                 'payloadhash' => $unprocessedUsergroupsCoursesRow->payloadhash,
