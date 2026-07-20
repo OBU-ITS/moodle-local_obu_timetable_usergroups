@@ -198,7 +198,8 @@ local/obu_timetable_usergroups:syncusergroups
 ```text
 Site administration → Server → Tasks → Scheduled tasks
 ```
-
+8. **Confirm the scheduled task is enabled and the schedule is appropriate.**
+9. **Enable the plugin setting if the plugin is configured to use one.**
 ---
 
 ## Transition notes
