@@ -165,8 +165,11 @@ php admin/cli/upgrade.php
 
 ```text
 local_obu_timetable_usergroups_add_usergroup_user
+local_obu_timetable_usergroups_add_usergroup_users
 local_obu_timetable_usergroups_remove_usergroup_user
+local_obu_timetable_usergroups_remove_usergroup_users
 local_obu_timetable_usergroups_sync_usergroup_users
+local_obu_timetable_usergroups_get_settings
 ```
 
 5. **Create and assign the API role**
