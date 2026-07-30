@@ -406,30 +406,30 @@ class local_obu_timetable_usergroups_external extends external_api {
     // The following functions are used to validate calls made to this endpoint for security purposes
     private static function validate_sync_payload(array $courses): void {
         if (empty($courses)) {
-            throw new \invalid_parameter_exception('At least one course must be supplied.');
+            self::throw_sync_validation_error('invalidsyncpayload');
         }
 
         foreach ($courses as $course) {
             if (!isset($course['courseIdNumber'], $course['groups']) || !is_array($course['groups'])) {
-                throw new \invalid_parameter_exception('Invalid course payload structure.');
+                self::throw_sync_validation_error('invalidcoursestructure');
             }
 
             $courseidnumber = $course['courseIdNumber'];
 
             if ($courseidnumber === '') {
-                throw new \invalid_parameter_exception('Course ID number cannot be empty.');
+                self::throw_sync_validation_error('emptycourseidnumber');
             }
 
             if (\core_text::strlen($courseidnumber) > self::MAX_COURSE_IDNUMBER_LENGTH) {
-                throw new \invalid_parameter_exception("Course ID number '{$courseidnumber}' is too long.");
+                self::throw_sync_validation_error('courseidnumbertoolong');
             }
 
             if (!preg_match(self::COURSE_IDNUMBER_PATTERN, $courseidnumber)) {
-                throw new \invalid_parameter_exception("Invalid course ID number format: '{$courseidnumber}'.");
+                self::throw_sync_validation_error('invalidcourseidnumber');
             }
 
             if (count($course['groups']) > self::MAX_GROUPS_PER_COURSE) {
-                throw new \invalid_parameter_exception("Too many groups supplied for course '{$courseidnumber}'.");
+                self::throw_sync_validation_error('toomanygroups');
             }
 
             $courseinstance = self::get_instance_name_from_course_idnumber($courseidnumber);
@@ -445,60 +445,52 @@ class local_obu_timetable_usergroups_external extends external_api {
             !isset($group['groupName'], $group['instanceName'], $group['usernames'])
             || !is_array($group['usernames'])
         ) {
-            throw new \invalid_parameter_exception("Invalid group structure for course '{$courseidnumber}'.");
+            self::throw_sync_validation_error('invalidgroupstructure');
         }
 
         $groupname = $group['groupName'];
         $instancename = $group['instanceName'];
 
         if (\core_text::strlen($groupname) > self::MAX_GROUP_NAME_LENGTH) {
-            throw new \invalid_parameter_exception("Group name '{$groupname}' is too long.");
+            self::throw_sync_validation_error('groupnametoolong');
         }
 
         if (!self::is_valid_group_name($groupname)) {
-            throw new \invalid_parameter_exception("Invalid group name '{$groupname}'.");
+            self::throw_sync_validation_error('invalidgroupname');
         }
 
         if ($instancename === '') {
-            throw new \invalid_parameter_exception("Instance name cannot be empty for course '{$courseidnumber}'.");
+            self::throw_sync_validation_error('emptyinstancename');
         }
 
         if (\core_text::strlen($instancename) > self::MAX_INSTANCE_NAME_LENGTH) {
-            throw new \invalid_parameter_exception("Instance name '{$instancename}' is too long.");
+            self::throw_sync_validation_error('instancenametoolong');
         }
 
         if (!preg_match(self::INSTANCE_NAME_PATTERN, $instancename)) {
-            throw new \invalid_parameter_exception("Invalid instance name '{$instancename}'.");
+            self::throw_sync_validation_error('invalidinstancename');
         }
 
         if ($courseinstance !== null && $instancename !== $courseinstance) {
-            throw new \invalid_parameter_exception(
-                "Instance name '{$instancename}' does not match course ID number '{$courseidnumber}'."
-            );
+            self::throw_sync_validation_error('instancemismatch');
         }
 
         if (count($group['usernames']) > self::MAX_USERS_PER_GROUP) {
-            throw new \invalid_parameter_exception(
-                "Too many usernames supplied for group '{$groupname}' on course '{$courseidnumber}'."
-            );
+            self::throw_sync_validation_error('toomanyusersingroup');
         }
 
         foreach ($group['usernames'] as $username) {
-            self::validate_sync_username($username, $groupname, $courseidnumber);
+            self::validate_sync_username($username);
         }
     }
 
-    private static function validate_sync_username(string $username, string $groupname, string $courseidnumber): void {
+    private static function validate_sync_username(string $username): void {
         if (\core_text::strlen($username) !== self::USERNAME_LENGTH) {
-            throw new \invalid_parameter_exception(
-                "Username '{$username}' has invalid length in group '{$groupname}' on course '{$courseidnumber}'."
-            );
+            self::throw_sync_validation_error('invalidusernamelength');
         }
 
         if (!preg_match(self::USERNAME_PATTERN, $username)) {
-            throw new \invalid_parameter_exception(
-                "Invalid username '{$username}' in group '{$groupname}' on course '{$courseidnumber}'."
-            );
+            self::throw_sync_validation_error('invalidusername');
         }
     }
 
@@ -520,6 +512,13 @@ class local_obu_timetable_usergroups_external extends external_api {
         }
 
         return $matches[1];
+    }
+
+    private static function throw_sync_validation_error(string $errorcode): void {
+        throw new \moodle_exception(
+            $errorcode,
+            'local_obu_timetable_usergroups'
+        );
     }
 
     public static function sync_usergroup_users_parameters() {
