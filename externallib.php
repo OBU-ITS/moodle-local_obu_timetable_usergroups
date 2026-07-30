@@ -29,6 +29,19 @@ require_once($CFG->dirroot . '/group/lib.php');
 
 class local_obu_timetable_usergroups_external extends external_api {
 
+    private const MAX_GROUPS_PER_COURSE = 50;
+    private const MAX_USERS_PER_GROUP = 500;
+
+    private const MAX_COURSE_IDNUMBER_LENGTH = 19;
+    private const MAX_GROUP_NAME_LENGTH = 12;
+    private const MAX_INSTANCE_NAME_LENGTH = 3;
+    private const USERNAME_LENGTH = 8;
+
+    private const INSTANCE_NAME_PATTERN = '/^S(?:[1-3]|1[23])$/';
+    private const COURSE_IDNUMBER_PATTERN = '/^\d{4}\.[A-Z]{4}\d{4}_S(?:[1-3]|1[23])_\d$/';
+    private const USERNAME_PATTERN = '/^\d{8}$/';
+    private const SET_GROUP_NAME_PATTERN = '/^Set([1-9]|[1-4][0-9]|50)$/';
+
     private static function require_manage_access(): void {
         $context = context_system::instance();
 
@@ -390,6 +403,124 @@ class local_obu_timetable_usergroups_external extends external_api {
         ];
     }
 
+    // The following functions are used to validate calls made to this endpoint for security purposes
+    private static function validate_sync_payload(array $courses): void {
+        if (empty($courses)) {
+            throw new \invalid_parameter_exception('At least one course must be supplied.');
+        }
+
+        foreach ($courses as $course) {
+            if (!isset($course['courseIdNumber'], $course['groups']) || !is_array($course['groups'])) {
+                throw new \invalid_parameter_exception('Invalid course payload structure.');
+            }
+
+            $courseidnumber = $course['courseIdNumber'];
+
+            if ($courseidnumber === '') {
+                throw new \invalid_parameter_exception('Course ID number cannot be empty.');
+            }
+
+            if (\core_text::strlen($courseidnumber) > self::MAX_COURSE_IDNUMBER_LENGTH) {
+                throw new \invalid_parameter_exception("Course ID number '{$courseidnumber}' is too long.");
+            }
+
+            if (!preg_match(self::COURSE_IDNUMBER_PATTERN, $courseidnumber)) {
+                throw new \invalid_parameter_exception("Invalid course ID number format: '{$courseidnumber}'.");
+            }
+
+            if (count($course['groups']) > self::MAX_GROUPS_PER_COURSE) {
+                throw new \invalid_parameter_exception("Too many groups supplied for course '{$courseidnumber}'.");
+            }
+
+            $courseinstance = self::get_instance_name_from_course_idnumber($courseidnumber);
+
+            foreach ($course['groups'] as $group) {
+                self::validate_sync_group($group, $courseidnumber, $courseinstance);
+            }
+        }
+    }
+
+    private static function validate_sync_group(array $group, string $courseidnumber, ?string $courseinstance): void {
+        if (
+            !isset($group['groupName'], $group['instanceName'], $group['usernames'])
+            || !is_array($group['usernames'])
+        ) {
+            throw new \invalid_parameter_exception("Invalid group structure for course '{$courseidnumber}'.");
+        }
+
+        $groupname = $group['groupName'];
+        $instancename = $group['instanceName'];
+
+        if (\core_text::strlen($groupname) > self::MAX_GROUP_NAME_LENGTH) {
+            throw new \invalid_parameter_exception("Group name '{$groupname}' is too long.");
+        }
+
+        if (!self::is_valid_group_name($groupname)) {
+            throw new \invalid_parameter_exception("Invalid group name '{$groupname}'.");
+        }
+
+        if ($instancename === '') {
+            throw new \invalid_parameter_exception("Instance name cannot be empty for course '{$courseidnumber}'.");
+        }
+
+        if (\core_text::strlen($instancename) > self::MAX_INSTANCE_NAME_LENGTH) {
+            throw new \invalid_parameter_exception("Instance name '{$instancename}' is too long.");
+        }
+
+        if (!preg_match(self::INSTANCE_NAME_PATTERN, $instancename)) {
+            throw new \invalid_parameter_exception("Invalid instance name '{$instancename}'.");
+        }
+
+        if ($courseinstance !== null && $instancename !== $courseinstance) {
+            throw new \invalid_parameter_exception(
+                "Instance name '{$instancename}' does not match course ID number '{$courseidnumber}'."
+            );
+        }
+
+        if (count($group['usernames']) > self::MAX_USERS_PER_GROUP) {
+            throw new \invalid_parameter_exception(
+                "Too many usernames supplied for group '{$groupname}' on course '{$courseidnumber}'."
+            );
+        }
+
+        foreach ($group['usernames'] as $username) {
+            self::validate_sync_username($username, $groupname, $courseidnumber);
+        }
+    }
+
+    private static function validate_sync_username(string $username, string $groupname, string $courseidnumber): void {
+        if (\core_text::strlen($username) !== self::USERNAME_LENGTH) {
+            throw new \invalid_parameter_exception(
+                "Username '{$username}' has invalid length in group '{$groupname}' on course '{$courseidnumber}'."
+            );
+        }
+
+        if (!preg_match(self::USERNAME_PATTERN, $username)) {
+            throw new \invalid_parameter_exception(
+                "Invalid username '{$username}' in group '{$groupname}' on course '{$courseidnumber}'."
+            );
+        }
+    }
+
+    private static function is_valid_group_name(string $groupname): bool {
+        if ($groupname === '') {
+            return false;
+        }
+
+        if ($groupname === 'Whole Cohort') {
+            return true;
+        }
+
+        return preg_match(self::SET_GROUP_NAME_PATTERN, $groupname) === 1;
+    }
+
+    private static function get_instance_name_from_course_idnumber(string $courseidnumber): ?string {
+        if (!preg_match('/^\d{4}\.[A-Z]{4}\d{4}_(S(?:[1-3]|1[23]))_\d$/', $courseidnumber, $matches)) {
+            return null;
+        }
+
+        return $matches[1];
+    }
 
     public static function sync_usergroup_users_parameters() {
         return new external_function_parameters(
@@ -427,13 +558,14 @@ class local_obu_timetable_usergroups_external extends external_api {
     public static function sync_usergroup_users($courses) { //TODO:: rename this to _new so it can run side by side with the existing implementations
         global $DB;
 
-        self::require_sync_access();
-        self::validate_context(context_system::instance());
-
         $params = self::validate_parameters(
             self::sync_usergroup_users_parameters(),
             ['courses' => $courses]
         );
+
+        self::require_sync_access();
+
+        self::validate_sync_payload($params['courses']);
 
         $currentTime = time();
 
