@@ -554,7 +554,7 @@ class local_obu_timetable_usergroups_external extends external_api {
         );
     }
 
-    public static function sync_usergroup_users($courses) { //TODO:: rename this to _new so it can run side by side with the existing implementations
+    public static function sync_usergroup_users($courses) {
         global $DB;
 
         $params = self::validate_parameters(
@@ -591,90 +591,6 @@ class local_obu_timetable_usergroups_external extends external_api {
             'success' => true
         ];
     }
-
-    //TODO: This function will just store info in the tables, sched task goes through and runs deltas, also need event listener for users enrolled on courses
-    public static function sync_usergroup_users_old($params) { //TODO:: rename this to what it was
-        global $DB;
-
-        $params = self::validate_parameters(self::sync_usergroup_users_parameters(), $params);
-
-        $results = [];
-        $messages = [];
-
-        // TODO : implement sync functionality
-        foreach ($params['courses'] as $courseData) {
-            $courseIdNumber = $courseData['courseIdNumber'];
-
-            // Check / remove course from requests list
-
-            // Find course by ID number
-            $course = $DB->get_record('course', ['idnumber' => $courseIdNumber]);
-            if (!$course) {
-                $messages[] = "Course with ID number '{$courseIdNumber}' not found.";
-                continue;
-            }
-
-            $courseContext = context_course::instance($course->id);
-
-            foreach ($courseData['groups'] as $groupData) {
-                $groupName = $groupData['groupName'];
-                $instanceName = $groupData['instanceName'];
-                $usernames = $groupData['usernames'];
-
-                $group = ($groupName == '0' || $groupName == '')
-                    ? local_obu_group_manager_create_system_group($course)
-                    : local_obu_group_manager_create_system_group($course, null, null, $instanceName, $groupName);
-
-                foreach ($usernames as $username) {
-                    $userResult = [
-                        'courseIdNumber' => $courseIdNumber,
-                        'groupName' => $groupName,
-                        'instanceName' => $instanceName,
-                        'username' => $username,
-                        'status' => false,
-                        'groupId' => $group->id
-                    ];
-
-                    // Check if user exists
-                    $user = $DB->get_record('user', ['username' => $username, 'deleted' => 0], 'id');
-                    if (!$user) {
-                        $userResult['message'] = "User '{$username}' not found.";
-                        $results[] = $userResult;
-                        continue;
-                    }
-
-                    if (!is_enrolled($courseContext, $user->id, '', true)) {
-                        $userResult['message'] = "User '{$username}' not enrolled on course '{$course->idnumber}'.";
-                        $results[] = $userResult;
-                        continue;
-                    }
-
-                    // Check if user is already in the group
-                    if ($DB->record_exists('groups_members', ['groupid' => $group->id, 'userid' => $user->id])) {
-                        $userResult['message'] = "User already in group.";
-                        $results[] = $userResult;
-                        continue;
-                    }
-
-                    // Add user to group
-                    try {
-                        groups_add_member($group->id, $user->id);
-                        $userResult['status'] = true;
-                    } catch (Exception $e) {
-                        $userResult['message'] = "Error adding user: " . $e->getMessage();
-                    }
-
-                    $results[] = $userResult;
-                }
-            }
-        }
-
-        return [
-            'messages' => $messages,
-            'results' => $results
-        ];
-    }
-
 
     public static function get_settings_parameters() {
         return new external_function_parameters(
