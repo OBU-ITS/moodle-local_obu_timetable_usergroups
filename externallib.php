@@ -38,7 +38,7 @@ class local_obu_timetable_usergroups_external extends external_api {
     private const USERNAME_LENGTH = 8;
 
     private const INSTANCE_NAME_PATTERN = '/^S(?:[1-3]|1[23])$/';
-    private const COURSE_IDNUMBER_PATTERN = '/^\d{4}\.[A-Z]{4}\d{4}_S(?:[1-3]|1[23])_\d$/';
+    private const COURSE_IDNUMBER_PATTERN = '/^\d{4}\.[A-Z]{3,4}\d{4}_S(?:[1-3]|1[23])_\d$/';
     private const USERNAME_PATTERN = '/^\d{8}$/';
     private const SET_GROUP_NAME_PATTERN = '/^Set([1-9]|[1-4][0-9]|50)$/';
 
@@ -280,7 +280,7 @@ class local_obu_timetable_usergroups_external extends external_api {
     }
 
     private static function get_instance_name_from_course_idnumber(string $courseidnumber): ?string {
-        if (!preg_match('/^\d{4}\.[A-Z]{4}\d{4}_(S(?:[1-3]|1[23]))_\d$/', $courseidnumber, $matches)) {
+        if (!preg_match('/^\d{4}\.[A-Z]{3,4}\d{4}_(S(?:[1-3]|1[23]))_\d$/', $courseidnumber, $matches)) {
             return null;
         }
 
