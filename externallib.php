@@ -336,10 +336,27 @@ class local_obu_timetable_usergroups_external extends external_api {
         );
 
         self::require_sync_access();
-
         self::validate_sync_payload($params['courses']);
 
+        $courses = $params['courses'];
         $currentTime = time();
+
+        $courseidnumbers = array_column($courses, 'courseIdNumber');
+
+        // One query retrieves all existing queue table records.
+        $existingrecords = $DB->get_records_list(
+            'local_obu_tt_ug_sync',
+            'courseidnumber',
+            $courseidnumbers
+        );
+
+        // Re-index by course ID number instead of database record ID.
+        $existingbycourse = [];
+        foreach ($existingrecords as $existingrecord) {
+            $existingbycourse[$existingrecord->courseidnumber] = $existingrecord;
+        }
+
+        $newrecords = [];
 
         foreach ($params['courses'] as $course) {
 
@@ -348,16 +365,29 @@ class local_obu_timetable_usergroups_external extends external_api {
             $payloadjson = json_encode($course, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
             $payloadhash = sha1($payloadjson);
 
-            $record = (object)[
-                'courseidnumber' => $courseidnumber,
-                'payloadjson' => $payloadjson,
-                'payloadhash' => $payloadhash,
-                'is_processed' => 0,
-                'timecreated' => $currentTime,
-                'timemodified' => $currentTime,
-            ];
+            if (isset($existingbycourse[$courseidnumber])) {
+                $existing = $existingbycourse[$courseidnumber];
 
-            $DB->insert_record('local_obu_tt_ug_sync', $record);
+                $existing->payloadjson = $payloadjson;
+                $existing->payloadhash = $payloadhash;
+                $existing->is_processed = 0;
+                $existing->timemodified = $currentTime;
+
+                $DB->update_record('local_obu_tt_ug_sync', $existing);
+            } else {
+                $newrecords[] = (object) [
+                    'courseidnumber' => $courseidnumber,
+                    'payloadjson' => $payloadjson,
+                    'payloadhash' => $payloadhash,
+                    'is_processed' => 0,
+                    'timecreated' => $currentTime,
+                    'timemodified' => $currentTime,
+                ];
+            }
+        }
+
+        if ($newrecords) {
+            $DB->insert_records('local_obu_tt_ug_sync', $newrecords);
         }
 
         return [

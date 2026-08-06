@@ -21,7 +21,7 @@
 
             <INDEXES>
                 <INDEX NAME="idx_processed" UNIQUE="false" FIELDS="is_processed"/>
-                <INDEX NAME="idx_courseidnumber" UNIQUE="false" FIELDS="courseidnumber"/>
+                <INDEX NAME="idx_courseidnumber" UNIQUE="true" FIELDS="courseidnumber"/>
             </INDEXES>
         </TABLE>
 
