@@ -40,7 +40,7 @@ class local_obu_timetable_usergroups_external extends external_api {
     private const INSTANCE_NAME_PATTERN = '/^S(?:[1-3]|1[23])$/';
     private const COURSE_IDNUMBER_PATTERN = '/^\d{4}\.[A-Z]{3,4}\d{4}_S(?:[1-3]|1[23])_\d$/';
     private const USERNAME_PATTERN = '/^\d{8}$/';
-    private const SET_GROUP_NAME_PATTERN = '/^Set([1-9]|[1-4][0-9]|50)$/';
+//    private const SET_GROUP_NAME_PATTERN = '/^Set([1-9]|[1-4][0-9]|50)$/';
 
     private static function require_manage_access(): void {
         $context = context_system::instance();
@@ -229,15 +229,7 @@ class local_obu_timetable_usergroups_external extends external_api {
         }
 
         if (!self::is_valid_group_name($groupname)) {
-            throw new \moodle_exception(
-                'invalidgroupname',
-                'local_obu_timetable_usergroups',
-                '',
-                null,
-                'Course: ' . $courseidnumber
-                . '; groupName: ' . var_export($groupname, true)
-                . '; hex: ' . bin2hex($groupname)
-            );
+            self::throw_sync_validation_error('invalidgroupname');
         }
 
         if ($instancename === '') {
@@ -276,15 +268,11 @@ class local_obu_timetable_usergroups_external extends external_api {
     }
 
     private static function is_valid_group_name(string $groupname): bool {
-        if ($groupname === '') {
+        if ($groupname === '' || $groupname !== trim($groupname)) {
             return false;
         }
 
-        if ($groupname === 'Whole Cohort') {
-            return true;
-        }
-
-        return preg_match(self::SET_GROUP_NAME_PATTERN, $groupname) === 1;
+        return true;
     }
 
     private static function get_instance_name_from_course_idnumber(string $courseidnumber): ?string {
