@@ -1,6 +1,11 @@
 Change Log | local_obu_timetable_usergroups
 ==========
 
+v.1.4.0
+-------
+- Changing process for storing in queue table to only allow one instance of a courseidnumber and to update it with future calls for that number.
+- Adding unique index for courseidnumber in queue table.
+
 v.1.3.1
 -------
 - New API and scheduled task to automatically sync usergroups.
