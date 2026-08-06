@@ -229,7 +229,15 @@ class local_obu_timetable_usergroups_external extends external_api {
         }
 
         if (!self::is_valid_group_name($groupname)) {
-            self::throw_sync_validation_error('invalidgroupname');
+            throw new \moodle_exception(
+                'invalidgroupname',
+                'local_obu_timetable_usergroups',
+                '',
+                null,
+                'Course: ' . $courseidnumber
+                . '; groupName: ' . var_export($groupname, true)
+                . '; hex: ' . bin2hex($groupname)
+            );
         }
 
         if ($instancename === '') {
