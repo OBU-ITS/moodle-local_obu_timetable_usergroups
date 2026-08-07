@@ -33,7 +33,7 @@ class local_obu_timetable_usergroups_external extends external_api {
     private const MAX_USERS_PER_GROUP = 500;
 
     private const MAX_COURSE_IDNUMBER_LENGTH = 19;
-    private const MAX_GROUP_NAME_LENGTH = 12;
+//    private const MAX_GROUP_NAME_LENGTH = 12;
     private const MAX_INSTANCE_NAME_LENGTH = 3;
     private const USERNAME_LENGTH = 8;
 
@@ -224,9 +224,9 @@ class local_obu_timetable_usergroups_external extends external_api {
         $groupname = $group['groupName'];
         $instancename = $group['instanceName'];
 
-        if (\core_text::strlen($groupname) > self::MAX_GROUP_NAME_LENGTH) {
-            self::throw_sync_validation_error('groupnametoolong');
-        }
+//        if (\core_text::strlen($groupname) > self::MAX_GROUP_NAME_LENGTH) {
+//            self::throw_sync_validation_error('groupnametoolong');
+//        }
 
         if (!self::is_valid_group_name($groupname)) {
             self::throw_sync_validation_error('invalidgroupname');
@@ -252,20 +252,20 @@ class local_obu_timetable_usergroups_external extends external_api {
             self::throw_sync_validation_error('toomanyusersingroup');
         }
 
-        foreach ($group['usernames'] as $username) {
-            self::validate_sync_username($username);
-        }
+//        foreach ($group['usernames'] as $username) {
+//            self::validate_sync_username($username);
+//        }
     }
 
-    private static function validate_sync_username(string $username): void {
-        if (\core_text::strlen($username) !== self::USERNAME_LENGTH) {
-            self::throw_sync_validation_error('invalidusernamelength');
-        }
-
-        if (!preg_match(self::USERNAME_PATTERN, $username)) {
-            self::throw_sync_validation_error('invalidusername');
-        }
-    }
+//    private static function validate_sync_username(string $username): void {
+//        if (\core_text::strlen($username) !== self::USERNAME_LENGTH) {
+//            self::throw_sync_validation_error('invalidusernamelength');
+//        }
+//
+//        if (!preg_match(self::USERNAME_PATTERN, $username)) {
+//            self::throw_sync_validation_error('invalidusername');
+//        }
+//    }
 
     private static function is_valid_group_name(string $groupname): bool {
         if ($groupname === '' || $groupname !== trim($groupname)) {
