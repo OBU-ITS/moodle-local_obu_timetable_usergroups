@@ -35,10 +35,10 @@ class local_obu_timetable_usergroups_external extends external_api {
     private const MAX_COURSE_IDNUMBER_LENGTH = 19;
 //    private const MAX_GROUP_NAME_LENGTH = 12;
     private const MAX_INSTANCE_NAME_LENGTH = 3;
-    private const USERNAME_LENGTH = 8;
+//    private const USERNAME_LENGTH = 8;
 
-    private const INSTANCE_NAME_PATTERN = '/^S(?:[1-3]|1[23])$/';
-    private const COURSE_IDNUMBER_PATTERN = '/^\d{4}\.[A-Z]{3,4}\d{4}_S(?:[1-3]|1[23])_\d$/';
+    private const INSTANCE_NAME_PATTERN = '/^S(?:[1-3]|1[23]|23)$/';
+    private const COURSE_IDNUMBER_PATTERN = '/^\d{4}\.[A-Z]{3,4}\d{4}_S(?:[1-3]|1[23]|23)_\d$/';
     private const USERNAME_PATTERN = '/^\d{8}$/';
 //    private const SET_GROUP_NAME_PATTERN = '/^Set([1-9]|[1-4][0-9]|50)$/';
 
