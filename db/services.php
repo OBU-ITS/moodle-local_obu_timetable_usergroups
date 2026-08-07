@@ -27,17 +27,33 @@ $functions = array(
         'classname'   => 'local_obu_timetable_usergroups_external',
         'methodname'  => 'add_usergroup_user',
         'classpath'   => 'local/obu_timetable_usergroups/externallib.php',
-        'description' => 'Adds a user to a user group with the given details. Returns a result code.',
+        'description' => 'Legacy: Adds a user to a user group with the given details. Returns a result code.',
         'type'        => 'write',
-        'capabilities'=> ''
+        'capabilities'=> 'local/obu_timetable_usergroups:manageusergroups'
+    ),
+    'local_obu_timetable_usergroups_add_usergroup_users' => array(
+        'classname'   => 'local_obu_timetable_usergroups_external',
+        'methodname'  => 'add_usergroup_users',
+        'classpath'   => 'local/obu_timetable_usergroups/externallib.php',
+        'description' => 'Adds users to user groups with the given details. Returns a result array.',
+        'type'        => 'write',
+        'capabilities'=> 'local/obu_timetable_usergroups:manageusergroups'
     ),
     'local_obu_timetable_usergroups_remove_usergroup_user' => array(
         'classname'   => 'local_obu_timetable_usergroups_external',
         'methodname'  => 'remove_usergroup_user',
         'classpath'   => 'local/obu_timetable_usergroups/externallib.php',
-        'description' => 'Removes a user from a user group with the given details. Returns a result code.',
+        'description' => 'Legacy: Removes a user from a user group with the given details. Returns a result code.',
         'type'        => 'write',
-        'capabilities'=> ''
+        'capabilities'=> 'local/obu_timetable_usergroups:manageusergroups'
+    ),
+    'local_obu_timetable_usergroups_remove_usergroup_users' => array(
+        'classname'   => 'local_obu_timetable_usergroups_external',
+        'methodname'  => 'remove_usergroup_users',
+        'classpath'   => 'local/obu_timetable_usergroups/externallib.php',
+        'description' => 'Removes a users from user groups with the given details. Returns a result array.',
+        'type'        => 'write',
+        'capabilities'=> 'local/obu_timetable_usergroups:manageusergroups'
     ),
     'local_obu_timetable_usergroups_get_settings' => array(
         'classname'   => 'local_obu_timetable_usergroups_external',
@@ -46,6 +62,14 @@ $functions = array(
         'description' => 'Gets the settings and gives them to the API caller.',
         'type'        => 'read',
         'capabilities'=> ''
+    ),
+    'local_obu_timetable_usergroups_sync_usergroup_users' => array(
+        'classname'   => 'local_obu_timetable_usergroups_external',
+        'methodname'  => 'sync_usergroup_users',
+        'classpath'   => 'local/obu_timetable_usergroups/externallib.php',
+        'description' => 'Stores recieved API calls in local table for later processing.  Returns a result code.',
+        'type'        => 'write',
+        'capabilities'=> 'local/obu_timetable_usergroups:syncusergroups'
     )
 );
 
@@ -56,7 +80,8 @@ $services = array(
         'functions' => array(
             'local_obu_timetable_usergroups_add_usergroup_user',
             'local_obu_timetable_usergroups_remove_usergroup_user',
-            'local_obu_timetable_usergroups_get_settings'
+            'local_obu_timetable_usergroups_get_settings',
+            'local_obu_timetable_usergroups_sync_usergroup_users'
         ),
         'restrictedusers' => 1,
         'enabled' => 1

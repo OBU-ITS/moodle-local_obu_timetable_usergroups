@@ -1,5 +1,4 @@
 <?php
-
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -16,21 +15,19 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Version info
+ * Plugin event observers
  *
  * @package    local_obu_timetable_usergroups
- * @author     Joe Souch
- * @copyright  2024, Oxford Brookes University {@link http://www.brookes.ac.uk/}
+ * @author     Emir Kamel
+ * @copyright  2026, Oxford Brookes University {@link http://www.brookes.ac.uk/}
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->component = 'local_obu_timetable_usergroups';
-$plugin->version = 2026080700;
-$plugin->requires = 2015111604;
-$plugin->maturity = MATURITY_STABLE;
-$plugin->release = '1.4.1.0';
-$plugin->dependencies = array(
-    'local_obu_group_manager' => 2024060401
-);
+$observers = [
+    [
+        'eventname' => '\core\event\user_enrolment_created',
+        'callback'  => '\local_obu_timetable_usergroups\observers\user_enrolment_observer::user_enrolled_on_course',
+    ],
+];
