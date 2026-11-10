@@ -50,7 +50,7 @@ class process_usergroups_service {
         $sql = "SELECT *
                 FROM {local_obu_tt_ug_sync} 
                 WHERE is_processed = 0 
-                ORDER BY id ASC";
+                ORDER BY timemodified ASC";
 
         return $DB->get_records_sql($sql);
     }

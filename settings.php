@@ -29,6 +29,10 @@ defined('MOODLE_INTERNAL') || die;
 if ($hassiteconfig) {
     $settings = new admin_settingpage(get_string('pluginname', 'local_obu_timetable_usergroups'), get_string('plugintitle', 'local_obu_timetable_usergroups'));
     $ADMIN->add('localplugins', $settings);
+    $settings->add(new admin_setting_heading('local_obu_timetable_usergroups/csv',
+        get_string('csvtitle', 'local_obu_timetable_usergroups'),
+        html_writer::link(new moodle_url('/local/obu_timetable_usergroups/csv.php'),
+            get_string('csvuploadlink', 'local_obu_timetable_usergroups'))));
     $settings->add(new admin_setting_configcheckbox('local_obu_timetable_usergroups/enable', get_string('enable', 'local_obu_timetable_usergroups'), get_string('enabledescription', 'local_obu_timetable_usergroups'), ''));
     $settings->add(new admin_setting_configtextarea('local_obu_timetable_usergroups/module_list', get_string('modulelist', 'local_obu_timetable_usergroups'), get_string('modulelistsettingtext', 'local_obu_timetable_usergroups'), ''));
 }
