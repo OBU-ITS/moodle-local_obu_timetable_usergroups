@@ -83,7 +83,7 @@ class csv_processor {
     }
 
     private static function format_course_id_number(string $relation): string {
-        if (preg_match('/^([A-Z0-9_]+)_(\d{4})\d{2}_[a-zA-Z0-9]+_([A-Z0-9_]+)$/', $relation, $matches)) {
+        if (preg_match('/^([A-Z0-9_]+)_(\d{4})\d{2}_[a-zA-Z0-9 _]+$/', $relation, $matches)) {
             return $matches[2] . '.' . $matches[1];
         }
         return $relation;
