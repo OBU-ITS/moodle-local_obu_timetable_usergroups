@@ -364,6 +364,10 @@ class local_obu_timetable_usergroups_external extends external_api {
             if (isset($existingbycourse[$courseidnumber])) {
                 $existing = $existingbycourse[$courseidnumber];
 
+                if ($existing->payloadhash === $payloadhash) {
+                    continue;
+                }
+
                 $existing->payloadjson = $payloadjson;
                 $existing->payloadhash = $payloadhash;
                 $existing->is_processed = 0;
