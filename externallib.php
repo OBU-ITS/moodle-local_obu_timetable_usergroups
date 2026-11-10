@@ -193,17 +193,17 @@ class local_obu_timetable_usergroups_external extends external_api {
                 self::throw_sync_validation_error('emptycourseidnumber');
             }
 
-            if (\core_text::strlen($courseidnumber) > self::MAX_COURSE_IDNUMBER_LENGTH) {
-                self::throw_sync_validation_error('courseidnumbertoolong');
-            }
+//            if (\core_text::strlen($courseidnumber) > self::MAX_COURSE_IDNUMBER_LENGTH) {
+//                self::throw_sync_validation_error('courseidnumbertoolong');
+//            }
+//
+//            if (!preg_match(self::COURSE_IDNUMBER_PATTERN, $courseidnumber)) {
+//                self::throw_sync_validation_error('invalidcourseidnumber');
+//            }
 
-            if (!preg_match(self::COURSE_IDNUMBER_PATTERN, $courseidnumber)) {
-                self::throw_sync_validation_error('invalidcourseidnumber');
-            }
-
-            if (count($course['groups']) > self::MAX_GROUPS_PER_COURSE) {
-                self::throw_sync_validation_error('toomanygroups');
-            }
+//            if (count($course['groups']) > self::MAX_GROUPS_PER_COURSE) {
+//                self::throw_sync_validation_error('toomanygroups');
+//            }
 
             $courseinstance = self::get_instance_name_from_course_idnumber($courseidnumber);
 
@@ -236,21 +236,21 @@ class local_obu_timetable_usergroups_external extends external_api {
             self::throw_sync_validation_error('emptyinstancename');
         }
 
-        if (\core_text::strlen($instancename) > self::MAX_INSTANCE_NAME_LENGTH) {
-            self::throw_sync_validation_error('instancenametoolong');
-        }
-
-        if (!preg_match(self::INSTANCE_NAME_PATTERN, $instancename)) {
-            self::throw_sync_validation_error('invalidinstancename');
-        }
-
-        if ($courseinstance !== null && $instancename !== $courseinstance) {
-            self::throw_sync_validation_error('instancemismatch');
-        }
-
-        if (count($group['usernames']) > self::MAX_USERS_PER_GROUP) {
-            self::throw_sync_validation_error('toomanyusersingroup');
-        }
+//        if (\core_text::strlen($instancename) > self::MAX_INSTANCE_NAME_LENGTH) {
+//            self::throw_sync_validation_error('instancenametoolong');
+//        }
+//
+//        if (!preg_match(self::INSTANCE_NAME_PATTERN, $instancename)) {
+//            self::throw_sync_validation_error('invalidinstancename');
+//        }
+//
+//        if ($courseinstance !== null && $instancename !== $courseinstance) {
+//            self::throw_sync_validation_error('instancemismatch');
+//        }
+//
+//        if (count($group['usernames']) > self::MAX_USERS_PER_GROUP) {
+//            self::throw_sync_validation_error('toomanyusersingroup');
+//        }
 
 //        foreach ($group['usernames'] as $username) {
 //            self::validate_sync_username($username);
