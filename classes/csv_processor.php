@@ -32,7 +32,7 @@ class csv_processor {
         $groupeddata = [];
         try {
             $header = fgetcsv($handle, 0, ',', '"', '');
-            if ($header === false || count($header) < 4) {
+            if ($header === false || count($header) < 3) {
                 throw new \moodle_exception('csvinvalidheader', 'local_obu_timetable_usergroups');
             }
 
@@ -42,19 +42,18 @@ class csv_processor {
                 if ($row === [null]) {
                     continue;
                 }
-                if (count($row) < 4) {
+                if (count($row) < 3) {
                     throw new \moodle_exception('csvinvalidrow', 'local_obu_timetable_usergroups', '', $rownumber);
                 }
 
-                $relation = trim($row[0]);
-                if ($relation === '') {
-                    continue;
-                }
-                $courseidnumber = self::format_course_id_number($relation);
-                $usernames = array_values(array_filter(array_map('trim', explode('|', $row[3])),
-                    static function($username) {
-                        return $username !== '';
-                    }));
+                $rawcourseidnumber = trim($row[0]);
+                $groupname = trim($row[1]);
+                $rawmembers = trim($row[2]);
+
+                $courseidnumber = self::format_course_id_number($rawcourseidnumber);
+                $instancenumber = self::format_instance_number($rawcourseidnumber);
+
+                $usernames = !empty($rawmembers) ? explode('|', $rawmembers) : [];
 
                 if (!isset($groupeddata[$courseidnumber])) {
                     $groupeddata[$courseidnumber] = [
@@ -63,8 +62,8 @@ class csv_processor {
                     ];
                 }
                 $groupeddata[$courseidnumber]['groups'][] = [
-                    'groupName' => trim($row[1]),
-                    'instanceName' => trim($row[2]),
+                    'groupName' => $groupname,
+                    'instanceName' => $instancenumber,
                     'usernames' => $usernames,
                 ];
             }
@@ -83,10 +82,19 @@ class csv_processor {
         return $results;
     }
 
-    /** Convert ENGR4009_S1_1_202609 to 2026.ENGR4009_S1_1. */
     private static function format_course_id_number(string $relation): string {
-        if (preg_match('/^([A-Z0-9_]+)_(\d{4})\d{2}$/', $relation, $matches)) {
+        if (preg_match('/^([A-Z0-9_]+)_(\d{4})\d{2}_[a-zA-Z0-9]+_([A-Z0-9_]+)$/', $relation, $matches)) {
             return $matches[2] . '.' . $matches[1];
+        }
+        return $relation;
+    }
+
+    private static function format_instance_number(string $relation): string {
+        if (preg_match('/^([A-Z0-9_]+)_(\d{4})\d{2}_Whole Cohort$/', $relation, $matches)) {
+            return "WC";
+        }
+        if (preg_match('/^([A-Z0-9_]+)_(\d{4})\d{2}_[a-zA-Z0-9]+_([A-Z0-9]+)$/', $relation, $matches)) {
+            return $matches[3];
         }
         return $relation;
     }
