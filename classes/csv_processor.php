@@ -50,6 +50,10 @@ class csv_processor {
                 $groupname = trim($row[1]);
                 $rawmembers = trim($row[2]);
 
+                if ($rawmembers === '') {
+                    continue;
+                }
+
                 $courseidnumber = self::format_course_id_number($rawcourseidnumber);
                 $instancenumber = self::format_instance_number($rawcourseidnumber);
 
