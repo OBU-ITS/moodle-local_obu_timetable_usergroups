@@ -3,7 +3,7 @@
 // Moodle is distributed under the GNU GPL v3 or later.
 
 /**
- * Upload module group assignments and display their JSON representation.
+ * Upload and queue module group assignments and display their JSON representation.
  *
  * @package local_obu_timetable_usergroups
  * @copyright 2026 Oxford Brookes University
@@ -44,7 +44,7 @@ if ($form->get_data()) {
 echo $OUTPUT->header();
 echo $OUTPUT->heading(get_string('csvtitle', 'local_obu_timetable_usergroups'));
 echo html_writer::tag('p', get_string('csvinstructions', 'local_obu_timetable_usergroups'));
-echo html_writer::tag('pre', s("relation,groupName,instanceName,usernames\nENGR4009_S1_1_202609,Set1,S1,12345678|23456789"));
+echo html_writer::tag('pre', s("relation,groupName,usernames\nENGR4009_S1_1_202609_Set1_S1,Set1,12345678|23456789"));
 $form->display();
 
 if ($error !== null) {
@@ -54,6 +54,7 @@ if ($results !== null) {
     if (!$results) {
         echo $OUTPUT->notification(get_string('csvnodata', 'local_obu_timetable_usergroups'), 'warning');
     } else {
+        echo $OUTPUT->notification(get_string('csvqueuesuccess', 'local_obu_timetable_usergroups'), 'success');
         echo $OUTPUT->heading(get_string('csvresults', 'local_obu_timetable_usergroups'), 3);
         foreach ($results as $courseidnumber => $json) {
             echo $OUTPUT->heading(s($courseidnumber), 4);

@@ -6,8 +6,10 @@ namespace local_obu_timetable_usergroups;
 
 defined('MOODLE_INTERNAL') || die();
 
+require_once(__DIR__ . '/../locallib.php');
+
 /**
- * Convert module group CSV files to per-course JSON.
+ * Convert module group CSV files to per-course JSON and queue them for processing.
  *
  * @package local_obu_timetable_usergroups
  * @copyright 2026 Oxford Brookes University
@@ -15,7 +17,7 @@ defined('MOODLE_INTERNAL') || die();
  */
 class csv_processor {
     /**
-     * Read a CSV with a header and relation, group, instance and members columns.
+     * Read a CSV with relation, group and members columns and queue its courses.
      *
      * @param string $csvfilepath Path to the uploaded file.
      * @return array JSON strings keyed by course ID number.
@@ -83,6 +85,10 @@ class csv_processor {
                 throw new \moodle_exception('csvinvalidencoding', 'local_obu_timetable_usergroups');
             }
         }
+        if ($groupeddata) {
+            \local_obu_timetable_usergroups_queue_usergroup_users(array_values($groupeddata));
+        }
+
         return $results;
     }
 
