@@ -26,6 +26,7 @@
 require_once($CFG->libdir . "/externallib.php");
 require_once($CFG->dirroot . "/local/obu_group_manager/lib.php");
 require_once($CFG->dirroot . '/group/lib.php');
+require_once(__DIR__ . '/locallib.php');
 
 class local_obu_timetable_usergroups_external extends external_api {
 
@@ -193,17 +194,17 @@ class local_obu_timetable_usergroups_external extends external_api {
                 self::throw_sync_validation_error('emptycourseidnumber');
             }
 
-            if (\core_text::strlen($courseidnumber) > self::MAX_COURSE_IDNUMBER_LENGTH) {
-                self::throw_sync_validation_error('courseidnumbertoolong');
-            }
+//            if (\core_text::strlen($courseidnumber) > self::MAX_COURSE_IDNUMBER_LENGTH) {
+//                self::throw_sync_validation_error('courseidnumbertoolong');
+//            }
+//
+//            if (!preg_match(self::COURSE_IDNUMBER_PATTERN, $courseidnumber)) {
+//                self::throw_sync_validation_error('invalidcourseidnumber');
+//            }
 
-            if (!preg_match(self::COURSE_IDNUMBER_PATTERN, $courseidnumber)) {
-                self::throw_sync_validation_error('invalidcourseidnumber');
-            }
-
-            if (count($course['groups']) > self::MAX_GROUPS_PER_COURSE) {
-                self::throw_sync_validation_error('toomanygroups');
-            }
+//            if (count($course['groups']) > self::MAX_GROUPS_PER_COURSE) {
+//                self::throw_sync_validation_error('toomanygroups');
+//            }
 
             $courseinstance = self::get_instance_name_from_course_idnumber($courseidnumber);
 
@@ -236,21 +237,21 @@ class local_obu_timetable_usergroups_external extends external_api {
             self::throw_sync_validation_error('emptyinstancename');
         }
 
-        if (\core_text::strlen($instancename) > self::MAX_INSTANCE_NAME_LENGTH) {
-            self::throw_sync_validation_error('instancenametoolong');
-        }
-
-        if (!preg_match(self::INSTANCE_NAME_PATTERN, $instancename)) {
-            self::throw_sync_validation_error('invalidinstancename');
-        }
-
-        if ($courseinstance !== null && $instancename !== $courseinstance) {
-            self::throw_sync_validation_error('instancemismatch');
-        }
-
-        if (count($group['usernames']) > self::MAX_USERS_PER_GROUP) {
-            self::throw_sync_validation_error('toomanyusersingroup');
-        }
+//        if (\core_text::strlen($instancename) > self::MAX_INSTANCE_NAME_LENGTH) {
+//            self::throw_sync_validation_error('instancenametoolong');
+//        }
+//
+//        if (!preg_match(self::INSTANCE_NAME_PATTERN, $instancename)) {
+//            self::throw_sync_validation_error('invalidinstancename');
+//        }
+//
+//        if ($courseinstance !== null && $instancename !== $courseinstance) {
+//            self::throw_sync_validation_error('instancemismatch');
+//        }
+//
+//        if (count($group['usernames']) > self::MAX_USERS_PER_GROUP) {
+//            self::throw_sync_validation_error('toomanyusersingroup');
+//        }
 
 //        foreach ($group['usernames'] as $username) {
 //            self::validate_sync_username($username);
@@ -324,8 +325,6 @@ class local_obu_timetable_usergroups_external extends external_api {
     }
 
     public static function sync_usergroup_users($courses) {
-        global $DB;
-
         $params = self::validate_parameters(
             self::sync_usergroup_users_parameters(),
             ['courses' => $courses]
@@ -334,57 +333,7 @@ class local_obu_timetable_usergroups_external extends external_api {
         self::require_sync_access();
         self::validate_sync_payload($params['courses']);
 
-        $courses = $params['courses'];
-        $currentTime = time();
-
-        $courseidnumbers = array_column($courses, 'courseIdNumber');
-
-        // One query retrieves all existing queue table records.
-        $existingrecords = $DB->get_records_list(
-            'local_obu_tt_ug_sync',
-            'courseidnumber',
-            $courseidnumbers
-        );
-
-        // Re-index by course ID number instead of database record ID.
-        $existingbycourse = [];
-        foreach ($existingrecords as $existingrecord) {
-            $existingbycourse[$existingrecord->courseidnumber] = $existingrecord;
-        }
-
-        $newrecords = [];
-
-        foreach ($params['courses'] as $course) {
-
-            $courseidnumber = $course['courseIdNumber'];
-
-            $payloadjson = json_encode($course, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
-            $payloadhash = sha1($payloadjson);
-
-            if (isset($existingbycourse[$courseidnumber])) {
-                $existing = $existingbycourse[$courseidnumber];
-
-                $existing->payloadjson = $payloadjson;
-                $existing->payloadhash = $payloadhash;
-                $existing->is_processed = 0;
-                $existing->timemodified = $currentTime;
-
-                $DB->update_record('local_obu_tt_ug_sync', $existing);
-            } else {
-                $newrecords[] = (object) [
-                    'courseidnumber' => $courseidnumber,
-                    'payloadjson' => $payloadjson,
-                    'payloadhash' => $payloadhash,
-                    'is_processed' => 0,
-                    'timecreated' => $currentTime,
-                    'timemodified' => $currentTime,
-                ];
-            }
-        }
-
-        if ($newrecords) {
-            $DB->insert_records('local_obu_tt_ug_sync', $newrecords);
-        }
+        local_obu_timetable_usergroups_queue_usergroup_users($params['courses']);
 
         return [
             'success' => true

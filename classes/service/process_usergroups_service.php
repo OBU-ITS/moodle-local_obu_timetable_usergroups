@@ -40,7 +40,7 @@ class process_usergroups_service {
     }
 
     /**
-     * Retrieves all unprocessed sync_usergroup_users API calls from the database.
+     * Retrieves up to 250 unprocessed sync_usergroup_users API calls, oldest first.
      *
      * @return array An array of unprocessed courses with usergroups records.
      */
@@ -50,9 +50,9 @@ class process_usergroups_service {
         $sql = "SELECT *
                 FROM {local_obu_tt_ug_sync} 
                 WHERE is_processed = 0 
-                ORDER BY id ASC";
+                ORDER BY timemodified ASC, id ASC";
 
-        return $DB->get_records_sql($sql);
+        return $DB->get_records_sql($sql, [], 0, 250);
     }
 
     /**
