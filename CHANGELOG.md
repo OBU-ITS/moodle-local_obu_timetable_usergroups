@@ -1,6 +1,14 @@
 Change Log | local_obu_timetable_usergroups
 ==========
 
+v.1.5.1
+-------
+- Convert from term code year to academic year in csv import processor
+
+v.1.5.0
+-------
+- Add CSV uploader
+
 v.1.4.0
 -------
 - Changing process for storing in queue table to only allow one instance of a courseidnumber and to update it with future calls for that number.

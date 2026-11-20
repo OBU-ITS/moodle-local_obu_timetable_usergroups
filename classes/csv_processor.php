@@ -92,19 +92,33 @@ class csv_processor {
         return $results;
     }
 
-    private static function format_course_id_number(string $relation): string {
-        if (preg_match('/^([A-Z0-9_]+)_(\d{4})\d{2}_[a-zA-Z0-9 _]+$/', $relation, $matches)) {
-            return $matches[2] . '.' . $matches[1];
+    private static function format_course_id_number(string $relation): string
+    {
+        if (!preg_match('/^([A-Z0-9_]+?)_(\d{4})(\d{2})_[a-zA-Z0-9 _]+$/', $relation, $matches)) {
+            return $relation;
         }
-        return $relation;
+
+        [, $coursePrefix, $yearStr, $monthStr] = $matches;
+
+        $month = (int) $monthStr;
+        if ($month < 1 || $month > 12) {
+            throw new \InvalidArgumentException("Invalid month '{$monthStr}' in course relation: '{$relation}'");
+        }
+
+        $year = (int) $yearStr;
+        if ($month < 9) {
+            $year--;
+        }
+
+        return sprintf('%04d%02d.%s', $year, $month, $coursePrefix);
     }
 
     private static function format_instance_number(string $relation): string {
-        if (preg_match('/^([A-Z0-9_]+)_(\d{4})\d{2}_Whole Cohort$/', $relation, $matches)) {
+        if (preg_match('/^[A-Z0-9_]+_\d{4}\d{2}_Whole Cohort$/', $relation, $matches)) {
             return "WC";
         }
-        if (preg_match('/^([A-Z0-9_]+)_(\d{4})\d{2}_[a-zA-Z0-9]+_([A-Z0-9]+)$/', $relation, $matches)) {
-            return $matches[3];
+        if (preg_match('/^[A-Z0-9_]+_\d{4}\d{2}_[a-zA-Z0-9]+_([A-Z0-9]+)$/', $relation, $matches)) {
+            return $matches[1];
         }
         return $relation;
     }
